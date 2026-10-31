@@ -1,0 +1,12 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {DroneSim,validRoute} from '../drone/sim.js';
+const run=(s,t)=>{for(let i=0;i<t*20;i++)s.tick(.05);};
+test('route flight returns and lands',()=>{const s=new DroneSim({x:0,z:0});s.start([{x:100,z:0},{x:100,z:100}],30);run(s,200);assert.equal(s.mode,'complete');assert.equal(s.index,2);assert.ok(s.battery>0);assert.ok(Math.hypot(s.x,s.z)<3);});
+test('loss of link triggers RTH after five seconds and rejects hold',()=>{const s=new DroneSim({x:0,z:0});s.start([{x:800,z:0}],40);run(s,30);s.setScenario('link');run(s,4);assert.equal(s.mode,'mission');assert.equal(s.hold(),false);run(s,2);assert.equal(s.mode,'rth');assert.match(s.reason,/bağlantı/);run(s,120);assert.equal(s.mode,'complete');});
+test('pause freezes position, battery and time',()=>{const s=new DroneSim({x:0,z:0});s.start([{x:800,z:0}]);run(s,5);s.paused=true;const before=[s.y,s.battery,s.elapsed];run(s,50);assert.deepEqual([s.y,s.battery,s.elapsed],before);});
+test('route validation rejects malformed and out of bounds missions',()=>{assert.equal(validRoute([{x:Infinity,z:0}],{x:0,z:0}),false);assert.equal(validRoute([{x:2100,z:0}],{x:0,z:0}),false);assert.equal(validRoute([],{x:0,z:0}),false);});
+test('low battery preserves fail safe until landing',()=>{const s=new DroneSim({x:0,z:0});s.start([{x:1000,z:0}]);run(s,40);s.setScenario('battery');run(s,1);assert.equal(s.mode,'rth');run(s,150);assert.equal(s.mode,'complete');assert.equal(s.completed,false);});
+test('obstacle collision ends the session',()=>{const s=new DroneSim({x:0,z:0},()=>0,(x)=>x>20);s.start([{x:100,z:0}],30);run(s,40);assert.equal(s.mode,'crashed');});
+test('manual flight moves in heading direction and respects altitude cap',()=>{const s=new DroneSim({x:0,z:0});s.start([{x:1000,z:0}]);s.mode='manual';s.heading=Math.PI/2;s.manual.forward=1;s.manual.vertical=1;run(s,20);assert.ok(s.x>150);assert.ok(Math.abs(s.z)<1);assert.equal(s.targetAgl,120);});
+test('hold during takeoff freezes altitude and full mission lands at pad center',()=>{const s=new DroneSim({x:0,z:0});s.start([{x:100,z:0}],30);run(s,2);s.hold();const y=s.y;run(s,10);assert.equal(s.y,y);s.resume();run(s,100);assert.equal(s.mode,'complete');assert.equal(s.x,0);assert.equal(s.z,0);});

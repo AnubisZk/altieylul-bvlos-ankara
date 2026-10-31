@@ -1,0 +1,58 @@
+{
+ "source": "OpenStreetMap contributors",
+ "license": "ODbL-1.0",
+ "sourceUrl": "https://www.openstreetmap.org/copyright",
+ "timestamp": "2026-10-31T17:21:36Z",
+ "landmarks": [
+  {
+   "id": "anit-blok",
+   "name": "Anıtkabir · Anıt Blok",
+   "distance": 230,
+   "lon": 32.838002,
+   "lat": 39.9256338,
+   "x": -0.4,
+   "z": 0,
+   "osm": "way/28241512"
+  },
+  {
+   "id": "aslanli-yol",
+   "name": "Aslanlı Yol",
+   "distance": 300,
+   "lon": 32.8359565,
+   "lat": 39.925944,
+   "x": -175.2,
+   "z": -34.7,
+   "osm": "way/267161017"
+  },
+  {
+   "id": "istiklal-hurriyet",
+   "name": "İstiklal ve Hürriyet kuleleri",
+   "distance": 160,
+   "lon": 32.8345196,
+   "lat": 39.927065,
+   "x": -297.7,
+   "z": -159.4,
+   "osm": "node/2726247644"
+  },
+  {
+   "id": "inonu-lahdi",
+   "name": "İsmet İnönü Lahdi",
+   "distance": 150,
+   "lon": 32.8363969,
+   "lat": 39.924705,
+   "x": -137.8,
+   "z": 102.9,
+   "osm": "node/2726254470"
+  },
+  {
+   "id": "baris-parki",
+   "name": "Anıtkabir · Barış Parkı",
+   "distance": 650,
+   "lon": 32.8377614,
+   "lat": 39.9268302,
+   "x": -20.7,
+   "z": -132.8,
+   "osm": "relation/15087280"
+  }
+ ]
+}

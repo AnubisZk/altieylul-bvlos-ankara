@@ -1,0 +1,5 @@
+node_modules/
+dist/
+imagery.local.json
+data/ank/report.txt
+.DS_Store

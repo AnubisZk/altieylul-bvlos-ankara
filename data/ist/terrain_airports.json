@@ -1,0 +1,477 @@
+{
+ "note": "Elevations (m MSL, EGM2008 ~ MSL) the İstanbul terrain has at each runway end (terrain_airports.py): the runway rectangle (+60 m) is flat at these values (linear between the ends if they differ). \"published\" = the AIP end elevations in OurAirports, for reference (LTFM's real runways slope ~0.9 %). \"approach\" per landing threshold: minimum height (m) of a 3° glide path aimed 300 m past the threshold above the graded terrain within +-60 m of the extended centreline, 0-60 m (runway strip / overrun), 60-300 m and 0.3-5 km before the threshold, and 0.3-5 km before the approach grading.",
+ "source": "data/ist/runways.json (airports pipeline) or OSM aeroways + OurAirports runways.csv",
+ "airports": [
+  {
+   "icao": "LTBA",
+   "name": "Atatürk Havalimanı",
+   "surface": "fit",
+   "source": "data/ist/runways.json",
+   "elevationMax": 28.3,
+   "elevationMin": 27.4,
+   "runways": [
+    {
+     "ref": "05/23",
+     "ids": [
+      "05",
+      "23"
+     ],
+     "width": 60.0,
+     "ends": [
+      {
+       "x": -13664.5,
+       "z": 6949.5,
+       "elevation": 28.3
+      },
+      {
+       "x": -11491.8,
+       "z": 5559.1,
+       "elevation": 27.4
+      }
+     ],
+     "published": [
+      [
+       "05",
+       28.35
+      ],
+      [
+       "23",
+       27.43
+      ]
+     ],
+     "closedInOurAirports": null,
+     "approach": {
+      "05": {
+       "thresholdElevation": 28.25,
+       "aimElevation": 28.15,
+       "clearance_0_60m": 15.6,
+       "clearance_60_300m": 18.9,
+       "clearance_300m_5km": 34.6,
+       "clearance_300m_5km_beforeGrading": 34.6
+      },
+      "23": {
+       "thresholdElevation": 27.4,
+       "aimElevation": 27.5,
+       "clearance_0_60m": 15.8,
+       "clearance_60_300m": 19.2,
+       "clearance_300m_5km": 35.2,
+       "clearance_300m_5km_beforeGrading": 35.2
+      }
+     }
+    }
+   ]
+  },
+  {
+   "icao": "LTFJ",
+   "name": "Sabiha Gökçen Havalimanı",
+   "surface": "platform",
+   "source": "data/ist/runways.json",
+   "elevationMax": 93.9,
+   "elevationMin": 82.3,
+   "runways": [
+    {
+     "ref": "06L/24R",
+     "ids": [
+      "06L",
+      "24R"
+     ],
+     "width": 45.0,
+     "ends": [
+      {
+       "x": 27211.9,
+       "z": 14099.1,
+       "elevation": 89.0
+      },
+      {
+       "x": 29875.4,
+       "z": 12718.5,
+       "elevation": 92.7
+      }
+     ],
+     "published": [
+      [
+       "06L",
+       89.31
+      ],
+      [
+       "24R",
+       92.66
+      ]
+     ],
+     "closedInOurAirports": null,
+     "approach": {
+      "06L": {
+       "thresholdElevation": 89.0,
+       "aimElevation": 89.37,
+       "clearance_0_60m": 16.1,
+       "clearance_60_300m": 19.4,
+       "clearance_300m_5km": 32.2,
+       "clearance_300m_5km_beforeGrading": 32.2
+      },
+      "24R": {
+       "thresholdElevation": 92.7,
+       "aimElevation": 92.33,
+       "clearance_0_60m": 15.4,
+       "clearance_60_300m": 18.7,
+       "clearance_300m_5km": 58.0,
+       "clearance_300m_5km_beforeGrading": 58.0
+      }
+     }
+    },
+    {
+     "ref": "06R/24L",
+     "ids": [
+      "06R",
+      "24L"
+     ],
+     "width": 60.0,
+     "ends": [
+      {
+       "x": 28024.8,
+       "z": 14944.9,
+       "elevation": 82.3
+      },
+      {
+       "x": 31167.7,
+       "z": 13315.7,
+       "elevation": 93.9
+      }
+     ],
+     "published": [
+      [
+       "06R",
+       88.09
+      ],
+      [
+       "24L",
+       88.09
+      ]
+     ],
+     "closedInOurAirports": null,
+     "approach": {
+      "06R": {
+       "thresholdElevation": 82.3,
+       "aimElevation": 83.28,
+       "clearance_0_60m": 16.7,
+       "clearance_60_300m": 20.1,
+       "clearance_300m_5km": 32.3,
+       "clearance_300m_5km_beforeGrading": 32.3
+      },
+      "24L": {
+       "thresholdElevation": 93.9,
+       "aimElevation": 92.92,
+       "clearance_0_60m": 14.7,
+       "clearance_60_300m": 18.1,
+       "clearance_300m_5km": 30.5,
+       "clearance_300m_5km_beforeGrading": 30.5
+      }
+     }
+    }
+   ]
+  },
+  {
+   "icao": "LTFM",
+   "name": "İstanbul Havalimanı",
+   "surface": "platform",
+   "source": "data/ist/runways.json",
+   "elevationMax": 99.1,
+   "elevationMin": 61.6,
+   "runways": [
+    {
+     "ref": "16L/34R",
+     "ids": [
+      "34R",
+      "16L"
+     ],
+     "width": 45.0,
+     "ends": [
+      {
+       "x": -22738.1,
+       "z": -26100.0,
+       "elevation": 99.1
+      },
+      {
+       "x": -22867.7,
+       "z": -29846.5,
+       "elevation": 66.4
+      }
+     ],
+     "published": [
+      [
+       "34R",
+       99.06
+      ],
+      [
+       "16L",
+       66.45
+      ]
+     ],
+     "closedInOurAirports": null,
+     "approach": {
+      "34R": {
+       "thresholdElevation": 99.1,
+       "aimElevation": 96.48,
+       "clearance_0_60m": 13.1,
+       "clearance_60_300m": 16.5,
+       "clearance_300m_5km": 29.0,
+       "clearance_300m_5km_beforeGrading": 29.0
+      },
+      "16L": {
+       "thresholdElevation": 66.4,
+       "aimElevation": 69.02,
+       "clearance_0_60m": 18.3,
+       "clearance_60_300m": 21.7,
+       "clearance_300m_5km": 60.6,
+       "clearance_300m_5km_beforeGrading": 60.6
+      }
+     }
+    },
+    {
+     "ref": "16R/34L",
+     "ids": [
+      "34L",
+      "16R"
+     ],
+     "width": 60.0,
+     "ends": [
+      {
+       "x": -22947.9,
+       "z": -26092.7,
+       "elevation": 99.1
+      },
+      {
+       "x": -23077.4,
+       "z": -29839.3,
+       "elevation": 66.8
+      }
+     ],
+     "published": [
+      [
+       "34L",
+       99.06
+      ],
+      [
+       "16R",
+       66.45
+      ]
+     ],
+     "closedInOurAirports": null,
+     "approach": {
+      "34L": {
+       "thresholdElevation": 99.1,
+       "aimElevation": 96.52,
+       "clearance_0_60m": 13.2,
+       "clearance_60_300m": 16.5,
+       "clearance_300m_5km": 26.7,
+       "clearance_300m_5km_beforeGrading": 26.7
+      },
+      "16R": {
+       "thresholdElevation": 66.8,
+       "aimElevation": 69.38,
+       "clearance_0_60m": 18.2,
+       "clearance_60_300m": 21.6,
+       "clearance_300m_5km": 62.7,
+       "clearance_300m_5km_beforeGrading": 62.7
+      }
+     }
+    },
+    {
+     "ref": "17L/35R",
+     "ids": [
+      "35R",
+      "17L"
+     ],
+     "width": 60.0,
+     "ends": [
+      {
+       "x": -21237.4,
+       "z": -25801.7,
+       "elevation": 94.5
+      },
+      {
+       "x": -21379.0,
+       "z": -29898.2,
+       "elevation": 61.6
+      }
+     ],
+     "published": [
+      [
+       "35R",
+       94.49
+      ],
+      [
+       "17L",
+       61.57
+      ]
+     ],
+     "closedInOurAirports": null,
+     "approach": {
+      "35R": {
+       "thresholdElevation": 94.5,
+       "aimElevation": 92.09,
+       "clearance_0_60m": 13.3,
+       "clearance_60_300m": 16.7,
+       "clearance_300m_5km": 29.1,
+       "clearance_300m_5km_beforeGrading": 29.1
+      },
+      "17L": {
+       "thresholdElevation": 61.6,
+       "aimElevation": 64.01,
+       "clearance_0_60m": 18.1,
+       "clearance_60_300m": 21.5,
+       "clearance_300m_5km": 43.0,
+       "clearance_300m_5km_beforeGrading": 43.0
+      }
+     }
+    },
+    {
+     "ref": "17R/35L",
+     "ids": [
+      "35L",
+      "17R"
+     ],
+     "width": 45.0,
+     "ends": [
+      {
+       "x": -21447.2,
+       "z": -25794.4,
+       "elevation": 94.5
+      },
+      {
+       "x": -21588.9,
+       "z": -29890.9,
+       "elevation": 61.6
+      }
+     ],
+     "published": [
+      [
+       "35L",
+       94.49
+      ],
+      [
+       "17R",
+       61.57
+      ]
+     ],
+     "closedInOurAirports": null,
+     "approach": {
+      "35L": {
+       "thresholdElevation": 94.5,
+       "aimElevation": 92.09,
+       "clearance_0_60m": 13.3,
+       "clearance_60_300m": 16.7,
+       "clearance_300m_5km": 28.9,
+       "clearance_300m_5km_beforeGrading": 28.9
+      },
+      "17R": {
+       "thresholdElevation": 61.6,
+       "aimElevation": 64.01,
+       "clearance_0_60m": 18.1,
+       "clearance_60_300m": 20.0,
+       "clearance_300m_5km": 22.5,
+       "clearance_300m_5km_beforeGrading": 22.5
+      }
+     }
+    },
+    {
+     "ref": "18/36",
+     "ids": [
+      "36",
+      "18"
+     ],
+     "width": 45.0,
+     "ends": [
+      {
+       "x": -18813.8,
+       "z": -25886.1,
+       "elevation": 94.2
+      },
+      {
+       "x": -18919.4,
+       "z": -28943.6,
+       "elevation": 67.4
+      }
+     ],
+     "published": [
+      [
+       "36",
+       94.18
+      ],
+      [
+       "18",
+       67.36
+      ]
+     ],
+     "closedInOurAirports": null,
+     "approach": {
+      "36": {
+       "thresholdElevation": 94.2,
+       "aimElevation": 91.57,
+       "clearance_0_60m": 13.1,
+       "clearance_60_300m": 16.4,
+       "clearance_300m_5km": 29.8,
+       "clearance_300m_5km_beforeGrading": 29.8
+      },
+      "18": {
+       "thresholdElevation": 67.4,
+       "aimElevation": 70.03,
+       "clearance_0_60m": 18.3,
+       "clearance_60_300m": 21.8,
+       "clearance_300m_5km": 28.0,
+       "clearance_300m_5km_beforeGrading": 28.0
+      }
+     }
+    },
+    {
+     "ref": "09/27",
+     "ids": [
+      "09",
+      "27"
+     ],
+     "width": 45.0,
+     "ends": [
+      {
+       "x": -17992.7,
+       "z": -24953.1,
+       "elevation": 83.5
+      },
+      {
+       "x": -15174.8,
+       "z": -25052.3,
+       "elevation": 83.5
+      }
+     ],
+     "published": [
+      [
+       "09",
+       83.52
+      ],
+      [
+       "27",
+       83.52
+      ]
+     ],
+     "closedInOurAirports": null,
+     "approach": {
+      "09": {
+       "thresholdElevation": 83.5,
+       "aimElevation": 83.5,
+       "clearance_0_60m": 15.7,
+       "clearance_60_300m": 19.0,
+       "clearance_300m_5km": 30.2,
+       "clearance_300m_5km_beforeGrading": 30.2
+      },
+      "27": {
+       "thresholdElevation": 83.5,
+       "aimElevation": 83.5,
+       "clearance_0_60m": 15.7,
+       "clearance_60_300m": 19.0,
+       "clearance_300m_5km": 20.0,
+       "clearance_300m_5km_beforeGrading": 7.1
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

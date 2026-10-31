@@ -1,0 +1,34 @@
+{
+  "name": "Ankara · Anıtkabir",
+  "id": "ank",
+  "crs": "EPSG:32636",
+  "origin": {
+    "lon": 32.838007,
+    "lat": 39.925634,
+    "note": "Anıtkabir · Anıt Blok (OSM way 28241512 \"Mustafa Kemal Atatürk Türbesi\" ağırlık merkezi)"
+  },
+  "originUTM": [
+    486157.334,
+    4419515.932
+  ],
+  "bboxLonLat": [
+    32.8145,
+    39.9076,
+    32.8615,
+    39.9436
+  ],
+  "local": {
+    "minX": -3000,
+    "maxX": 3000,
+    "minZ": -3000,
+    "maxZ": 3000
+  },
+  "home": {
+    "lon": 32.83512,
+    "lat": 39.93029,
+    "note": "Tandoğan kapısı yakınındaki çim alan (OSM way 1128199619 ağırlık merkezi)"
+  },
+  "fallbackElevation": 880,
+  "fallbackNote": "GLO-30 yükseklik verisi gelene kadar düz zemin. Gerçek arazi değildir.",
+  "axes": "x = UTM easting - E0 (east +X); z = -(UTM northing - N0) (north -Z); y = meters above MSL"
+}

@@ -1,0 +1,195 @@
+// Lead-owned: graphics quality presets. World layers receive the preset object via setQuality(q)
+// and pick what they need; unknown fields are ignored. main.js applies the renderer-level fields.
+//
+// Memory fields (robustness): every preset carries a GPU memory budget and caps that bound what streaming may keep
+// resident, and resolveQuality() lowers them further for memory-limited device classes (src/core/gpu-device.js):
+//   gpuBudgetMB      resident WebGL allocations the budget monitor (src/core/gpu-guard.js) steps the quality down at
+//   maxImageryTiles  resident terrain imagery tiles (≈ 1.4 MB of GPU memory each with mipmaps; LRU-evicted by terrain)
+//   textureMaxSize   GLB textures larger than this are downscaled at load (src/core/gpu-textures.js)
+//   releaseImages    drop the decoded CPU copy of GLB / terrain images once they are on the GPU (the context-loss
+//                    policy reloads instead of restoring in place, so nothing needs to re-upload them)
+//   lazyCockpit      stream the detailed cockpit GLB only when the cockpit view is first entered
+//   cityUnloadAfter  seconds a city tile may stay loaded after it was last needed (default 20)
+import { detectDevice } from './gpu-device.js';
+
+export const QUALITY = {
+  low: {
+    id: 'low', label: 'Düşük',
+    pixelRatioMax: 1, shadows: false, shadowMapSize: 1024, shadowCascades: 1,
+    terrainError: 2.5,      // multiplier on terrain screen-space error (higher = coarser)
+    imageryMaxLevel: -2,    // drop the two finest imagery levels
+    cityLodScale: 0.55, cityShadows: false, treeDensity: 0.3, treeDistance: 0.5,
+    landmarkLodScale: 0.6, airportLodScale: 0.6,
+    clouds: 'low', water: 'simple', anisotropy: 2, antialias: false,
+    gpuBudgetMB: 1700, maxImageryTiles: 200, textureMaxSize: 2048, releaseImages: true, lazyCockpit: false,
+  },
+  medium: {
+    id: 'medium', label: 'Orta',
+    pixelRatioMax: 1.25, shadows: true, shadowMapSize: 2048, shadowCascades: 1,
+    terrainError: 1.6, imageryMaxLevel: -1,
+    cityLodScale: 0.75, cityShadows: false, treeDensity: 0.6, treeDistance: 0.75,
+    landmarkLodScale: 0.8, airportLodScale: 0.8,
+    clouds: 'medium', water: 'medium', anisotropy: 4, antialias: true,
+    gpuBudgetMB: 2000, maxImageryTiles: 320, textureMaxSize: 4096, releaseImages: true, lazyCockpit: false,
+  },
+  high: {
+    id: 'high', label: 'Yüksek',
+    pixelRatioMax: 1.5, shadows: true, shadowMapSize: 4096, shadowCascades: 2,
+    terrainError: 1, imageryMaxLevel: 0,
+    cityLodScale: 1, cityShadows: true, treeDensity: 1, treeDistance: 1,
+    landmarkLodScale: 1, airportLodScale: 1,
+    clouds: 'high', water: 'high', anisotropy: 8, antialias: true,
+    gpuBudgetMB: 3000, maxImageryTiles: 520, textureMaxSize: 4096, releaseImages: true, lazyCockpit: false, cityUnloadAfter: 12,
+  },
+  ultra: {
+    id: 'ultra', label: 'Ultra',
+    pixelRatioMax: 2, shadows: true, shadowMapSize: 4096, shadowCascades: 2,
+    terrainError: 0.8, imageryMaxLevel: 0,
+    cityLodScale: 1.25, cityShadows: true, treeDensity: 1, treeDistance: 1.3,
+    landmarkLodScale: 1.2, airportLodScale: 1.2,
+    clouds: 'high', water: 'high', anisotropy: 16, antialias: true,
+    gpuBudgetMB: 3800, maxImageryTiles: 520, textureMaxSize: 4096, releaseImages: true, lazyCockpit: false, cityUnloadAfter: 12,
+  },
+};
+export const QUALITY_ORDER = ['low', 'medium', 'high', 'ultra'];
+
+/**
+ * Per device-class caps, applied on top of any preset (numbers: the cheaper value wins, i.e. the smaller one except for
+ * LARGER_IS_CHEAPER; booleans and strings: forced).
+ * Phones/tablets are limited by what iOS/Android let one tab keep (GPU process + web process), not by GPU speed;
+ * integrated GPUs share system memory with the browser.
+ * Phones also keep the "low" terrain, imagery, pixel ratio, shadows and antialiasing on every preset: iPhone pages died on
+ * "ultra" in 6 of 25 flights against 9 of 238 on "low" (live data), and ultra added about 130 MB to a phone's start-up
+ * peak and 320 MB to its steady footprint. A chosen medium / high / ultra still changes clouds, water and traffic.
+ */
+export const DEVICE_CAPS = {
+  phone: {
+    pixelRatioMax: 1, shadows: false, cityShadows: false, antialias: false, terrainError: 2.5, imageryMaxLevel: -2,
+    shadowMapSize: 1024, shadowCascades: 1, maxImageryTiles: 90, textureMaxSize: 512,
+    cityLodScale: 0.4, treeDensity: 0.3, treeDistance: 0.5, landmarkLodScale: 0.5, airportLodScale: 0.5, anisotropy: 2,
+    cityUnloadAfter: 6, gpuBudgetMB: 900, lazyCockpit: true,
+  },
+  tablet: {
+    pixelRatioMax: 1.25, shadowMapSize: 2048, shadowCascades: 1, maxImageryTiles: 130, textureMaxSize: 2048,
+    cityLodScale: 0.5, treeDensity: 0.5, treeDistance: 0.6, landmarkLodScale: 0.7, airportLodScale: 0.7, anisotropy: 4,
+    cityUnloadAfter: 8, gpuBudgetMB: 1400, lazyCockpit: true,
+  },
+  integrated: { maxImageryTiles: 200, textureMaxSize: 2048, shadowMapSize: 2048, cityUnloadAfter: 12, gpuBudgetMB: 1700, lazyCockpit: true },
+  // old / entry-level dedicated GPUs (GT 730, Quadro K2200, GTX 480, RX 550: 1–2 GB, src/core/gpu-device.js): the
+  // integrated caps with a smaller budget; medium-class dedicated GPUs (GTX 1050 Ti, MX 450, R9): 2–4 GB
+  entry: { pixelRatioMax: 1, maxImageryTiles: 200, textureMaxSize: 2048, shadowMapSize: 2048, cityUnloadAfter: 12, gpuBudgetMB: 1500, lazyCockpit: true },
+  midrange: { maxImageryTiles: 320, gpuBudgetMB: 2200 },
+  unknown: { textureMaxSize: 2048, gpuBudgetMB: 2000 },
+  // Software rasterizers (Microsoft Basic Render Driver / SwiftShader / llvmpipe): every pixel and vertex is shaded by
+  // the CPU. Live: ~10 fps on "low" (4 % of the Windows sessions), dynamic resolution always at its 0.6 floor. So: start
+  // at that 0.6 instead of reaching it after half a minute of 4–5 fps, down to 0.5 (main.js reads pixelRatioMin; frame
+  // rate doubles from 1.0 to 0.5 on SwiftShader), no MSAA, no shadow pass, the shortest draw distances. The budget
+  // monitor fired at 805–921 MB with nothing left to lower: its budget is system memory here.
+  software: {
+    pixelRatioMax: 0.6, pixelRatioMin: 0.5, antialias: false, shadows: false, cityShadows: false, shadowMapSize: 1024, shadowCascades: 1,
+    terrainError: 3.5, imageryMaxLevel: -2, cityLodScale: 0.4, treeDensity: 0.15, treeDistance: 0.4, landmarkLodScale: 0.5, airportLodScale: 0.5,
+    clouds: 'low', water: 'simple', anisotropy: 1,
+    maxImageryTiles: 120, textureMaxSize: 1024, cityUnloadAfter: 10, gpuBudgetMB: 1200, lazyCockpit: true,
+  },
+};
+// numeric caps where a larger value is the cheaper one (the larger value wins); for every other number the smaller wins
+const LARGER_IS_CHEAPER = new Set(['terrainError', 'pixelRatioMin']);
+
+/**
+ * GPU-meter budgets for WebKit phones / tablets (docs/perf/findings-2026-09.md T5). WebKit's WebContent + GPU process
+ * footprint was 2.5–4× the meter (≈ 270 MB for any WebGL page + 2.5 × meter); iOS kills the page or drops the context on
+ * the footprint. Budgets from the footprint that held on the owner's iPad (medium, meter 0.8–1.0 GB → ~2.8 GB) and that
+ * failed (high, meter 1.3–1.4 GB → ~3.7 GB), phones from the low preset's 1.5–2.2 GB: tablet ≈ 3.0 GB, phone ≈ 2.1 GB.
+ */
+export const WEBKIT_FOOTPRINT_MB = { tablet: 3000, phone: 2100 };
+export const webkitMeterBudget = (footprintMB) => Math.round((footprintMB - 270) / 2.5);
+
+/** Device-class key into DEVICE_CAPS (null = no extra caps). */
+export function capClass(d = detectDevice()) {
+  if (d.kind === 'phone' || d.kind === 'tablet') return d.kind;
+  if (d.tier === 'integrated-fast') return 'integrated';
+  if (DEVICE_CAPS[d.tier]) return d.tier;
+  return null;
+}
+
+const resolved = new Map();
+/**
+ * The preset to run with on this device: QUALITY[id] with the device caps applied (memoized per id, so identity
+ * comparisons in main.js keep working).
+ */
+export function resolveQuality(id, device = detectDevice()) {
+  const base = QUALITY[id] || QUALITY.high;
+  const cls = capClass(device);
+  const key = `${base.id}|${cls}|${device.engine || ''}`;
+  if (resolved.has(key)) return resolved.get(key);
+  const q = { ...base };
+  const caps = cls ? DEVICE_CAPS[cls] : null;
+  if (caps) {
+    for (const [k, v] of Object.entries(caps)) {
+      if (typeof v === 'number' && typeof q[k] === 'number') q[k] = LARGER_IS_CHEAPER.has(k) ? Math.max(q[k], v) : Math.min(q[k], v);
+      else q[k] = v;
+    }
+    if (q.shadowCascades < 2 && q.shadowMapSize > 2048) q.shadowMapSize = 2048;
+  }
+  if (device.engine === 'webkit' && WEBKIT_FOOTPRINT_MB[cls]) q.gpuBudgetMB = Math.min(q.gpuBudgetMB, webkitMeterBudget(WEBKIT_FOOTPRINT_MB[cls]));
+  q.deviceClass = cls || 'desktop';
+  resolved.set(key, q);
+  return q;
+}
+
+/** One step down (null below 'low'). */
+export function lowerQuality(id) {
+  const i = QUALITY_ORDER.indexOf(id);
+  return i > 0 ? QUALITY_ORDER[i - 1] : null;
+}
+export const qualityRank = (id) => QUALITY_ORDER.indexOf(id);
+
+// ---- quality ceiling after a graphics-memory failure (localStorage 'gokyuzu.gpuCap') ----
+// A WebGL context loss on this device stores the preset the game was reloaded with; later sessions start no higher
+// until the player picks a quality themselves (settings.js clears it then).
+const CAP_KEY = 'gokyuzu.gpuCap';
+export function getQualityCap() {
+  try { const c = JSON.parse(localStorage.getItem(CAP_KEY) || 'null'); return c && QUALITY[c.q] ? c : null; } catch { return null; }
+}
+export function setQualityCap(q) {
+  try { const c = getQualityCap(); localStorage.setItem(CAP_KEY, JSON.stringify({ q, t: Date.now(), n: ((c && c.n) || 0) + 1 })); } catch { /* private mode */ }
+}
+export function clearQualityCap() { try { localStorage.removeItem(CAP_KEY); } catch { /* ignore */ } }
+/** `id` limited by the stored ceiling. */
+export function capQuality(id) {
+  const c = getQualityCap();
+  return c && qualityRank(id) > qualityRank(c.q) ? c.q : id;
+}
+
+/** Default preset per desktop tier (src/core/gpu-device.js); unknown → medium. */
+export const TIER_QUALITY = {
+  'apple-pro': 'ultra', apple: 'high', discrete: 'high', midrange: 'medium', 'integrated-fast': 'medium',
+  integrated: 'low', entry: 'low', software: 'low', unknown: 'medium',
+};
+
+/**
+ * Best-guess default from the device class and GPU name: phones → low, tablets → medium (+ tablet caps),
+ * Apple M-series Pro/Max → ultra, other Apple / discrete → high, midrange dedicated / fast iGPU → medium,
+ * integrated / entry-level dedicated / software → low, unknown → medium.
+ */
+export function detectQuality(d) {
+  try {
+    d = d || detectDevice();
+    if (d.kind === 'phone') return 'low';
+    if (d.kind === 'tablet') return 'medium';
+    return TIER_QUALITY[d.tier] || 'medium';
+  } catch { return 'medium'; }
+}
+
+/**
+ * Why the page runs the preset it starts with (telemetry `mq`, pure): 'url' (?quality=), 'user' (a stored choice),
+ * 'auto' (detectQuality), 'cap' (lowered by the ceiling a graphics failure left, see below) or 'resume' (lowered for the
+ * reload after a tab crash, src/app/main.js).
+ */
+export function qualitySource({ running, stored = null, auto, url = null, cap = null }) {
+  if (url) return 'url';
+  const base = stored || auto;
+  if (running === base) return stored ? 'user' : 'auto';
+  if (cap && running === cap) return 'cap';
+  return 'resume';
+}

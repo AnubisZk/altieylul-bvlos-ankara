@@ -1,0 +1,72 @@
+[
+  {
+    "title": "BVLOS eğitimine hoş geldin",
+    "paragraphs": [
+      "Altıeylül BİLSEM BVLOS Drone Simülatörüne hoş geldin. BVLOS, görüş hattı ötesinde uçuş anlamına gelir. Bu uygulamada Ankara Anıtkabir çevresinde görev planlama, telemetri takibi ve güvenli dönüş kararlarını çalışırsın.",
+      "Bu kılavuz mevcut kontrolleri anlatır. Haritalar canlı değildir; rüzgâr, batarya ve bağlantı davranışları eğitim için basitleştirilmiştir. Simülasyon sonucu gerçek uçuş izni veya pilot sertifikası değildir."
+    ]
+  },
+  {
+    "title": "Görev planını hazırla",
+    "paragraphs": [
+      "Örnek görevler düğmesinden altı noktalı kıyı gözlemini, üç noktalı kısa başlangıcı veya ters yönde kıyı gözlemini seçebilirsin. Görev yüksekliğini otuz ile yüz yirmi metre arasında belirle.",
+      "Rotayı düzenle düğmesine bastıktan sonra haritaya tıklayarak nokta ekle. En fazla on iki nokta ve kalkıştan iki kilometre uzaklık sınırı vardır. Son noktayı sil düğmesiyle geri alabilirsin. Mesafe dönüşü de içerir; süre yaklaşık bir planlama değeridir."
+    ]
+  },
+  {
+    "title": "Haritayı büyüt ve planı kaydet",
+    "paragraphs": [
+      "Haritanın üstündeki büyüt düğmesi haritayı ekranı kaplayacak şekilde açar. Bu görünümde de rota düzenleyebilir ve son noktayı silebilirsin. Kapat düğmesi veya Escape tuşu önceki görünüme döndürür.",
+      "Planı kaydet düğmesinde bir ad yaz. Yükle düğmesi kayıtları numaralı bir liste olarak açar. Aynı adla ikinci kayıt yapılmaz. En fazla otuz plan bu tarayıcıda saklanır; başka cihazlara veya diğer simülatör adresine kendiliğinden aktarılmaz."
+    ]
+  },
+  {
+    "title": "Göstergeleri doğru oku",
+    "paragraphs": [
+      "Yükseklik, dronenin bulunduğu arazinin üzerindeki yüksekliği, yani AGL değerini gösterir. Hız ana göstergesi yatay hareket içindir. Altındaki dikey hız metre bölü saniye olarak yükselişi veya alçalışı gösterir. Yalnız yükselirken yatay hızın sıfır olması normaldir.",
+      "Batarya yüzdesi kalan şarjı gösterir; kalan uçuş süresini tahmin etmez. Bağlantı yüzdesi eğitim modelindeki sinyal durumudur. Bağlantı tamamen kesildiğinde harita konumu ve uçuş telemetrisi son alınan değerlerde kalır. Rüzgârın uygulanan hızı ve geldiği yön eğitmen bölümünde görünür."
+    ]
+  },
+  {
+    "title": "Uçuşu başlat ve noktaları izle",
+    "paragraphs": [
+      "Görevi başlat düğmesi otomatik kalkışı başlatır. Drone hedef yüksekliğe çıktıktan sonra noktaları sırayla izler. Noktalara yaklaşırken yavaşlar, yeni hedefe doğru kademeli döner ve yeniden hızlanır.",
+      "Her nokta tamamlandığında kamera üzerinde kısa bir bildirim görünür. Haritadaki nokta yeşile döner ve onay işareti alır; olay uçuş günlüğüne de yazılır. Sarı çerçeve sıradaki hedefi belirtir. Son noktadan sonra drone kalkış yerine dönüp iner."
+    ]
+  },
+  {
+    "title": "Duraklat, konum koru veya sıfırla",
+    "paragraphs": [
+      "Duraklat düğmesi veya P tuşu simülasyon zamanını durdurur. Devam et ile sürdürürsün. Konum koru droneyi havada bekletir; zaman ve batarya tüketimi devam eder. Rotaya devam komutu hedefleri izlemeyi sürdürür. Eve dön komutu görevi erken bitirerek kalkış alanına dönüş başlatır.",
+      "Uçuşu sıfırla düğmesi, onayından sonra droneyi kalkış yerine taşır. Uçuş süresi, batarya, rüzgâr, olaylar ve puanlama başlangıca döner. Seçili rota ve kayıtlı planlar korunur. Bu işlem bir uçuş manevrası değildir; yeni deneme hazırlamak içindir."
+    ]
+  },
+  {
+    "title": "Manuel kontrol ve kamera",
+    "paragraphs": [
+      "Uçuş başladıktan sonra Manuel kontrolü seçebilirsin. Bilgisayar klavyesinde W ve S ileri geri, A ve D yana hareket, Q ve E yön değiştirme, R ve F yükselme ve alçalma içindir. Dönüşler yumuşatılmıştır. Manuel uçuş daima normal zaman hızında çalışır. Yüz yirmi metre sınırına yükselmeye çalıştığında günlükte uyarı oluşur.",
+      "Drone kamerası ileri görüşü, dış görünüm ise droneyi gösterir. Dış görünümde sürükleyerek çevresinde dön, tekerlekle yaklaş. Tarihi yapı incele menüsünde bir yapı seçtiğinde uçuş duraklar. Dönüşte drone kamerasını seçip Devam et düğmesine bas."
+    ]
+  },
+  {
+    "title": "Rüzgâr ve eğitmen senaryoları",
+    "paragraphs": [
+      "Eğitmen bölümünde rüzgârı sıfır ile on iki metre bölü saniye arasında ayarlayabilir, geldiği yönü seçip Rüzgârı uygula düğmesine basabilirsin. Kuzeyden gelen rüzgâr güneye eser. Uygulanan değer alt satırda görünür. Ayarı kalkıştan önce veya uçuş sırasında değiştirebilirsin.",
+      "Bu eğitim modelinde karşı rüzgâr otomatik ilerlemeyi yavaşlatır, rüzgâr batarya tüketimini artırır ve manuel uçuşta sürüklenme oluşturur. Drone yatışı ile kalkış alanındaki rüzgâr tulumu yön ve şiddete tepki verir. Bağlantı kaybı ve düşük batarya senaryoları da vardır. Normal senaryo bağlantı arızasını ve rüzgârı kaldırır; bataryayı doldurmaz."
+    ]
+  },
+  {
+    "title": "Güvenli dönüş ve rapor",
+    "paragraphs": [
+      "Bağlantı beş saniye boyunca tamamen kesilirse otomatik eve dönüş başlar. Düşük batarya senaryosu bataryayı yüzde yirmi dörde indirir ve eve dönüşü tetikler. Eğitim sınırının dışına çıkmak da dönüş başlatır. Bağlantı yokken pilotun uçuş komutları iletilemez.",
+      "İniş veya çarpışma sonunda değerlendirme açılır. Görev ilerlemesi, rota takibi, yükseklik, güvenli dönüş, sınırlar ve batarya yönetimi puanlanır. CSV raporunu indirerek uçuş izi, olaylar ve değerlendirmeyi saklayabilirsin. Tekrar denemeden önce raporunu indir; uçuşu sıfırlamak bu oturumun kaydını temizler."
+    ]
+  },
+  {
+    "title": "Quest 3 sürümü",
+    "paragraphs": [
+      "Ayrı WebXR sitesinde rota ve rüzgâr ayarlarını gözlüğe girmeden önce tarayıcı ekranında hazırla. Sanal kontrol istasyonunda kumanda ışınıyla düğmelere işaret edip tetiğe bas. Başlat, konum koru, devam, eve dön ve duraklat kontrolleri istasyonda bulunur.",
+      "Sanal istasyonda harita, tamamlanan noktalar, dikey hız ve rüzgâr bilgileri de görünür. Klavyeli manuel sürüş masaüstü ekranı içindir. Planı değiştirmek, isimle kaydetmek veya uçuşu sıfırlamak için sanal istasyondan çıkıp tarayıcı kontrollerini kullan."
+    ]
+  }
+]
