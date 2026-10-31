@@ -70,7 +70,9 @@ Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okun
   dosyaları için pratik. Site ~20 MB (müzik 10 MB, model 1.9 MB) olduğundan iki yol var:
   1. GitHub bağlandı (AnubisZk) ama oturum yeni repo açamıyor. Zafer Hoca GitHub'da boş özel repo
      `AnubisZk/altieylul-bvlos-ankara` açınca: `add_repo` (push) → `git push` → Vercel projesi Git'e bağlanır.
-     Yerel git deposu hazır (dal `main`).
+     Yerel git deposu hazır (dal `main`). Repo açıldı (https://github.com/AnubisZk/altieylul-bvlos-ankara, boş, özel)
+     ama Claude GitHub uygulamasının erişimi yoktu; kod henüz gönderilmedi. Paket `.git` klasörüyle birlikte verildi:
+     `git remote add origin https://github.com/AnubisZk/altieylul-bvlos-ankara.git && git push -u origin main`
   2. Zafer Hoca kendi bilgisayarında: `dist` klasöründe `npx vercel@latest deploy --prod` (proje adı önerisi:
      `altieylul-bvlos-ankara`).
 
