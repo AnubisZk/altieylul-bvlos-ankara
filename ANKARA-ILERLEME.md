@@ -51,22 +51,34 @@ Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okun
 - Bilinen eksik: 6 km'lik arazi karesinin kenarı ufukta basamak gibi görünüyor (ileride kenar eteği/ufuk halkası).
 - `tools/build.mjs` artık `dist/data` klasörünü her build'de temizliyor (eski veri kalmıyor).
 
+## OSM verisi (31 Ekim, 20:30)
+
+- Zafer Hoca `ankara-merkez-osm-verileri.zip` gönderdi (Overpass, `out body geom`, 39.905–39.955 K / 32.815–32.885 D,
+  OSM tarihi 2026-10-31T17:21Z). `prepare-data.mjs` artık satır içi geometriyi (`geometry`) ve `building:part` öğelerini okuyor.
+- Başlangıç noktası düzeltildi: Anıt Blok = OSM way 28241512 "Mustafa Kemal Atatürk Türbesi" (39.925634, 32.838007).
+- Kalkış pedi: Tandoğan kapısı yakınındaki çim alan, OSM way 1128199619 (39.93029, 32.83512), ≈ 883 m.
+  `ANCHOR_FROM_HOME` = [246, 517].
+- Bina/zemin alanı Anıt Blok çevresinde ±2 km: 8313 bina (7458'inin yüksekliği tahmini, tür bazlı), 4228 yol/park/yeşil alan.
+- Tarihi yapı menüsü: Anıt Blok, Aslanlı Yol, İstiklal ve Hürriyet kuleleri, İsmet İnönü Lahdi, Barış Parkı.
+- OSM'deki Anıt Blok yüksekliği 11.75 m (gerçek yapıdan düşük); temsili Blender modeli bunu değiştirecek.
+- Headless Chromium: 8313 bina tek mesh, ~372 bin üçgen, 28 çizim çağrısı; sayfa ~7 sn'de hazır.
+
 ## Vercel yayını — durum
 
 - Vercel bağlantısı (MCP) çalışıyor; hesapta takım `team_cQj2sAnuqQqKoymTzVlCgwG8`. Ankara projesi **henüz oluşturulmadı**.
 - Engel: Claude'un çalışma ortamı api.vercel.com'a doğrudan erişemiyor; MCP ile dosya yükleme yalnız küçük metin
   dosyaları için pratik. Site ~20 MB (müzik 10 MB, model 1.9 MB) olduğundan iki yol var:
-  1. GitHub bağlantısı Claude'a verilirse: özel repo + Vercel projesi Git'e bağlanır, her push otomatik yayın olur.
+  1. GitHub bağlandı (AnubisZk) ama oturum yeni repo açamıyor. Zafer Hoca GitHub'da boş özel repo
+     `AnubisZk/altieylul-bvlos-ankara` açınca: `add_repo` (push) → `git push` → Vercel projesi Git'e bağlanır.
+     Yerel git deposu hazır (dal `main`).
   2. Zafer Hoca kendi bilgisayarında: `dist` klasöründe `npx vercel@latest deploy --prod` (proje adı önerisi:
      `altieylul-bvlos-ankara`).
 
 ## Sıradaki adımlar
 
-1. OSM dosyası gelince (Overpass 406 verdi; overpass.kumi.systems veya overpass-turbo.eu dışa aktarım önerildi):
-   `node tools/ankara/prepare-data.mjs --dem <GLO-30 .tif> --osm <overpass .json>`
-   ve `data/ank/report.txt` okunarak: Tandoğan kalkış noktasını ve Anıt Blok merkezini OSM'den düzelt,
-   `ANCHOR_FROM_HOME` değerini güncelle.
-2. Tarihi yapı menüsünü `world.landmarks` verisinden doldur (şu an `mission.js` HERITAGE içinde yalnız Anıt Blok var).
+1. ~~OSM ile konum düzeltme~~ (yapıldı). Veri yenilenirse:
+   `node tools/ankara/prepare-data.mjs --dem <GLO-30 .tif> --osm <ankara-merkez.osm.json>`
+2. ~~Tarihi yapı menüsü~~ (yapıldı; `mission.js` HERITAGE ↔ `landmarks.json` kimlikleri).
 3. Gece arama noktalarının (`night-training.js`) Ankara'da park/açık alana düştüğünü doğrula.
 4. Anıtkabir temsili modeli (Blender betiği → GLB → `addLayer` ile çarpışma ve iniş uygunluğu). Anıt Blok merdiven
    ve teras zemini; çarpışmada hasar efekti yok, durup uyarı.
