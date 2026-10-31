@@ -63,18 +63,14 @@ Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okun
 - OSM'deki Anıt Blok yüksekliği 11.75 m (gerçek yapıdan düşük); temsili Blender modeli bunu değiştirecek.
 - Headless Chromium: 8313 bina tek mesh, ~372 bin üçgen, 28 çizim çağrısı; sayfa ~7 sn'de hazır.
 
-## Vercel yayını — durum
+## Yayın (31 Ekim, 20:47)
 
-- Vercel bağlantısı (MCP) çalışıyor; hesapta takım `team_cQj2sAnuqQqKoymTzVlCgwG8`. Ankara projesi **henüz oluşturulmadı**.
-- Engel: Claude'un çalışma ortamı api.vercel.com'a doğrudan erişemiyor; MCP ile dosya yükleme yalnız küçük metin
-  dosyaları için pratik. Site ~20 MB (müzik 10 MB, model 1.9 MB) olduğundan iki yol var:
-  1. GitHub bağlandı (AnubisZk) ama oturum yeni repo açamıyor. Zafer Hoca GitHub'da boş özel repo
-     `AnubisZk/altieylul-bvlos-ankara` açınca: `add_repo` (push) → `git push` → Vercel projesi Git'e bağlanır.
-     Yerel git deposu hazır (dal `main`). Repo açıldı (https://github.com/AnubisZk/altieylul-bvlos-ankara, boş, özel)
-     ama Claude GitHub uygulamasının erişimi yoktu; kod henüz gönderilmedi. Paket `.git` klasörüyle birlikte verildi:
-     `git remote add origin https://github.com/AnubisZk/altieylul-bvlos-ankara.git && git push -u origin main`
-  2. Zafer Hoca kendi bilgisayarında: `dist` klasöründe `npx vercel@latest deploy --prod` (proje adı önerisi:
-     `altieylul-bvlos-ankara`).
+- GitHub: https://github.com/AnubisZk/altieylul-bvlos-ankara (dal `main`; Claude GitHub uygulaması kurulu).
+- Vercel projesi: `altieylul-bvlos-ankara` (prj_NCzS43uma5cfu4gwTNSht12D4UGU, takım team_cQj2sAnuqQqKoymTzVlCgwG8),
+  Git'e bağlı: `main`'e her push otomatik üretim yayını yapar. Node 22.x; build `npm run build`, çıktı `dist`.
+- Canlı adres: https://altieylul-bvlos-ankara.vercel.app
+- Vercel kimlik koruması yalnız önizleme (preview) yayınlarında; üretim adresi herkese açık (öğrenciler girebilsin diye).
+- İstanbul siteleri (Netlify) değiştirilmedi.
 
 ## Sıradaki adımlar
 
@@ -85,8 +81,9 @@ Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okun
 4. Anıtkabir temsili modeli (Blender betiği → GLB → `addLayer` ile çarpışma ve iniş uygunluğu). Anıt Blok merdiven
    ve teras zemini; çarpışmada hasar efekti yok, durup uyarı.
 5. Kılavuz (`guide-content.json`) ve hızlı başlangıç metnindeki kalan İstanbul/deniz ifadelerini tek tek gözden geçir.
-6. ArcGIS anahtarı gelince `imagery.local.json` ile dene; yeni Netlify sitesi oluştur (İstanbul site kimliklerini
-   kullanma).
+6. ArcGIS anahtarı gelince: anahtarın izinli adresine `altieylul-bvlos-ankara.vercel.app` yazılmalı. Vercel'de
+   build sırasında `imagery.local.json` yok; anahtarı build'e bir ortam değişkeniyle vermek için `tools/build.mjs`
+   küçük bir ekleme ister (ör. `ARCGIS_API_KEY`).
 
 ## Çalıştırma
 
