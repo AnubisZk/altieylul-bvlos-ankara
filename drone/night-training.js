@@ -1,7 +1,7 @@
 import * as T from 'three';
 import {createNightState,createSearchState,TIMES,searchRoute,searchOutcome} from './night-state.js';
 import {createNightVisuals} from './night-visuals.js';
-import {validRoute} from './sim.js';
+import {chooseSearchPoint} from './search-site.js';
 import {localToLonLat} from '../src/geo.js';
 
 export function createNightTraining({scene,camera,fill,getState,setPlan,status}){
@@ -14,7 +14,7 @@ export function createNightTraining({scene,camera,fill,getState,setPlan,status})
     <button id="prepare-search" disabled>Kayıp kişi arama rotasını hazırla</button>
     <small id="search-status" role="status">Arama görevini uçuş öncesinde hazırlayabilirsin.</small>
     <small>Termal görüntü ve kişi eğitim için üretilmiştir; gerçek sıcaklık veya canlı kişi verisi değildir. Kamera modu yalnız drone görüntüsüne uygulanır.</small>
-    <small>Arama: termal kamerada kişiyi merkez çevresinde 3 saniye tut. Konum koru ve manuel yön kontrolü yardımcı olur. Tespitten sonra Eve dön. Quest'te seçimleri VR'a girmeden yap.</small>
+    <small>Arama: termal kamerada kişiyi merkez çevresinde 3 saniye tut. Konum koru ve manuel yön kontrolü yardımcı olur. Tespitten sonra Eve dön.</small>
   </div>`;
   document.querySelector('.event-title').before(panel);
   const $=id=>panel.querySelector('#'+id),time=$('time-of-day'),sensor=$('thermal-camera'),pitch=$('gimbal-pitch'),button=$('prepare-search'),feedback=$('search-status');
@@ -32,20 +32,9 @@ export function createNightTraining({scene,camera,fill,getState,setPlan,status})
     for(const s of [-1,1]){const leg=new T.Mesh(new T.CapsuleGeometry(.09,.56,2,6),coat);leg.position.set(s*.13,.41,0);root.add(leg);const arm=new T.Mesh(new T.CapsuleGeometry(.075,.48,2,6),coat);arm.position.set(s*.32,1.07,0);arm.rotation.z=s*.14;root.add(arm);}
     scene.add(root);return root;
   }
-  function choosePoint(world,home){
-    // Search only within the existing training boundary, on clear, dry ground.
-    for(const x of [-1550,-1650,-1750,-1450])for(const z of [450,600,300,750,150]){
-      const p={x:home.x+x,z:home.z+z},y=world.getGroundHeight(p.x,p.z);
-      if(!validRoute(searchRoute(p),home)||world.isWater(p.x,p.z)||!Number.isFinite(y)||y<1)continue;
-      if(world.getObstacleHeight(p.x,p.z)>y+.3)continue;
-      const slope=[[-2,0],[2,0],[0,-2],[0,2]].some(([dx,dz])=>Math.abs(world.getGroundHeight(p.x+dx,p.z+dz)-y)>.7);
-      if(!slope)return {...p,y};
-    }
-    return null;
-  }
   button.onclick=()=>{
     const {world,sim,home}=getState();if(!world||!sim||sim.active())return;
-    const choice=choosePoint(world,home);if(!choice){status('Arama için güvenli kara noktası henüz yüklenmedi. Biraz sonra yeniden deneyin.');return;}
+    const choice=chooseSearchPoint(world,home);if(!choice){status('Arama için uygun OSM yeşil alanı bulunamadı. Arazi ve zemin verilerini kontrol edin.');return;}
     setPlan(searchRoute(choice),80);point=choice;armed=true;search.reset();
     person??=makePerson();person.position.set(point.x,point.y,point.z);person.visible=true;
     state.select('night');time.value='night';sensor.value='1';pitch.value='55';pitch.oninput();
@@ -64,7 +53,7 @@ export function createNightTraining({scene,camera,fill,getState,setPlan,status})
       visuals??=createNightVisuals({scene,world,model,home,fill});
       const thermal=view==='fpv'?Number(sensor.value):0,values=state.step(dt);
       visuals.update({...values,thermal,haze:weather==='hazy'?1:0});
-      document.getElementById('scene').dataset.training=JSON.stringify({time:state.selected,thermal,armed,...search.snapshot});
+      document.getElementById('scene').dataset.training=JSON.stringify({time:state.selected,thermal,armed,area:point?.areaName,point:point?{x:point.x,y:point.y,z:point.z}:null,...search.snapshot});
       if(!sim||!armed||!point)return;
       camera.updateMatrixWorld();sight.set(point.x,point.y+1.1,point.z);projected.copy(sight).project(camera);
       const range=camera.position.distanceTo(sight),inFrame=projected.z>-1&&projected.z<1&&Math.abs(projected.x)<.35&&Math.abs(projected.y)<.35;

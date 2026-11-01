@@ -1,5 +1,11 @@
 # Gökyüzü assets licence: CC BY-NC 4.0
 
+## Ankara additions
+
+The outlines in `data/ank/opening-streets.json` and `data/ank/music-zone.json` come from © OpenStreetMap contributors under the [Open Database License](https://www.openstreetmap.org/copyright).
+
+The two Ankara music recordings, `music/atam-sen-rahat-uyu.mp3` and `music/ankaranin-tasina-bak.mp3`, were supplied by the project owner for the simulator. The upstream Gökyüzü asset licence does not grant redistribution rights for these recordings.
+
 The **code** of Gökyüzü is open source under the Apache License 2.0 ([LICENSE](LICENSE)). The **original game assets**
 are licensed separately, under the Creative Commons Attribution-NonCommercial 4.0 International licence (CC BY-NC 4.0).
 This file says what that covers, how to credit it, and what is excluded.

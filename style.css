@@ -50,3 +50,6 @@ dialog:has(.flight-result) #close-dialog{position:sticky;top:0;z-index:2;backgro
 .pad-sticks{display:flex;justify-content:space-around;gap:10px;text-align:center}.pad-stick{position:relative;width:78px;height:78px;margin:5px auto;border:1px solid #577782;border-radius:50%;background:linear-gradient(transparent 49%,#294550 49%,#294550 51%,transparent 51%),linear-gradient(90deg,transparent 49%,#294550 49%,#294550 51%,transparent 51%)}
 .pad-stick i{position:absolute;left:33px;top:33px;width:10px;height:10px;background:#41ddc5;border-radius:50%}
 .gamepad-panel :focus-visible,.pilot-tabs :focus-visible{outline:2px solid #41ddc5;outline-offset:2px}
+.street-name.leaflet-marker-icon{pointer-events:none;background:#2c271e;color:#fff2d4;border:1px solid #c9a66d;border-radius:4px;text-align:center;white-space:nowrap;font:600 10px/16px Arial,sans-serif;box-shadow:0 1px 3px #18232b70}
+.monument-name.leaflet-marker-icon{background:#133e42;border-color:#8dd9cd;color:#eafffb}
+.map-context{padding:8px 13px 0}.map-context button{font-size:10px;padding:4px 8px}

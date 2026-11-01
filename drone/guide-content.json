@@ -9,7 +9,7 @@
   {
     "title": "Görev planını hazırla",
     "paragraphs": [
-      "Örnek görevler düğmesinden altı noktalı kıyı gözlemini, üç noktalı kısa başlangıcı veya ters yönde kıyı gözlemini seçebilirsin. Görev yüksekliğini otuz ile yüz yirmi metre arasında belirle.",
+      "Örnek görevler düğmesinden altı noktalı Anıtkabir çevresi gözlemini, üç noktalı kısa başlangıcı veya ters yönde çevre gözlemini seçebilirsin. Görev yüksekliğini otuz ile yüz yirmi metre arasında belirle.",
       "Rotayı düzenle düğmesine bastıktan sonra haritaya tıklayarak nokta ekle. En fazla on iki nokta ve kalkıştan iki kilometre uzaklık sınırı vardır. Son noktayı sil düğmesiyle geri alabilirsin. Mesafe dönüşü de içerir; süre yaklaşık bir planlama değeridir."
     ]
   },
@@ -63,10 +63,10 @@
     ]
   },
   {
-    "title": "Quest 3 sürümü",
+    "title": "Oyun kolu ve konuma göre müzik",
     "paragraphs": [
-      "Ayrı WebXR sitesinde rota ve rüzgâr ayarlarını gözlüğe girmeden önce tarayıcı ekranında hazırla. Sanal kontrol istasyonunda kumanda ışınıyla düğmelere işaret edip tetiğe bas. Başlat, konum koru, devam, eve dön ve duraklat kontrolleri istasyonda bulunur.",
-      "Sanal istasyonda harita, tamamlanan noktalar, dikey hız ve rüzgâr bilgileri de görünür. Klavyeli manuel sürüş masaüstü ekranı içindir. Planı değiştirmek, isimle kaydetmek veya uçuşu sıfırlamak için sanal istasyondan çıkıp tarayıcı kontrollerini kullan."
+      "Oyun kolunda A düğmesi yerde motorları hazırlar. Çubukları ortaladıktan sonra sol çubuğu yukarı iterek kalk, ortalayarak yüksekliği koru, aşağı çekerek uygun zemine in. İnişten sonra motorları A ile kapat; rapor bundan sonra açılır. Y üç metre otomatik kalkış, B uygun yere otomatik iniş, X kamera değişimi, sağ çubuk yatay hareket ve sol çubuk yatay ekseni yön kontrolüdür. Eşleme ve kalibrasyon ayarlarını Oyun Kolu bölümünde değiştirebilirsin.",
+      "Anıtkabir yerleşkesinin üzerindeyken Atam Sen Rahat Uyu, diğer bölgelerde Ankara’nın Taşına Bak çalar. Müzik kamera açısına göre değil, dronenin konumuna göre değişir. Müzik düğmesi ve ses ayarı her iki parça için geçerlidir. Sesli kılavuz açıldığında müzik duraklatılır; kapatıldığında devam eder."
     ]
   }
 ]

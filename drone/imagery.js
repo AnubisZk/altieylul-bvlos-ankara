@@ -6,9 +6,9 @@ const SERVICE='https://ibasemaps-api.arcgis.com/arcgis/rest/services/World_Image
 // Session-memory cache only. No offline export, tile bundling or server-side cache.
 export async function createAerialImagery({world,renderer,url='data/ist/imagery.json',bounds=[28.945,40.995,29.035,41.042],onState=()=>{}}){
   const response=await fetch(url);
-  if(!response.ok)return null;
+  if(!response.ok){onState({status:'unavailable'});return null;}
   const config=await response.json();
-  if(!config.apiKey)return null;
+  if(!config.apiKey){onState({status:'disabled'});return null;}
   const zoom=17,size=8,pixels=256;
   if(renderer.capabilities.maxTextureSize<size*pixels)return null;
   const canvas=document.createElement('canvas');canvas.width=canvas.height=size*pixels;

@@ -1,5 +1,7 @@
 node_modules/
 dist/
 imagery.local.json
+.env.local
+.env.*.local
 data/ank/report.txt
 .DS_Store

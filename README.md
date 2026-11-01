@@ -1,10 +1,19 @@
 # Altıeylül BİLSEM · BVLOS Drone Lab
 
-School education simulator using the real Istanbul terrain, imagery and city pipeline from [Gökyüzü](https://github.com/erendikmenn/gokyuzu), original author Mehmet Eren Dikmen. Upstream base: `5acb51bc8074e390016a19cac2333fa4afee71a4`.
+Ankara sürümü, öğrencilerin Tandoğan'dan kalkarak Anıtkabir çevresinde görüş hattı ötesi (BVLOS) drone görevi planlayıp uçurduğu bir tarayıcı simülatörüdür. Üç boyutlu arazi, binalar ve sağdaki görev haritası Ankara verilerini kullanır. Sınıf dersleri İstanbul normal sürümünden uyarlanmıştır. Uçuş altyapısı Mehmet Eren Dikmen'in [Gökyüzü](https://github.com/erendikmenn/gokyuzu) projesinden gelir.
 
 ## Run
 
-Node 22+: `npm ci`, `npm test`, `npm run build`, `npm start`. Open http://127.0.0.1:5188. World assets use the school's existing Cloudflare R2 distribution. The original school flight site is not modified.
+Node.js 22 veya üstü ile proje klasöründe sırasıyla çalıştırın.
+
+```sh
+npm ci
+npm test
+npm run build
+npm start
+```
+
+Tarayıcıda <http://127.0.0.1:5188/> adresini açın. Arazi ve uçuş dersleri paketle gelir. Çevrimiçi harita altlığı internet kullanır. İsteğe bağlı ArcGIS hava görüntüsünü ve Ankara'ya özgü özellikleri [devir notu](ANKARA-ILERLEME.md) açıklar.
 
 ## Drone
 

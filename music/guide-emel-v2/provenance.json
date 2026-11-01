@@ -1,0 +1,86 @@
+{
+  "voice": "tr-TR-EmelNeural",
+  "rate": "-5%",
+  "paragraphs": [
+    {
+      "file": "00.mp3",
+      "textSha256": "3af5bc76a79375acd6720fe7206c8f11c755e55846ce677b021dce6583496bd3"
+    },
+    {
+      "file": "01.mp3",
+      "textSha256": "83a383c5138a611d1cbfc5e474f711a6b68f3be59b1d66e1314094c7f04d96e1"
+    },
+    {
+      "file": "02.mp3",
+      "textSha256": "fc885b6a09ea4b9372719c2d35c3abff48b172400e5a82a9209ae8e397096a14"
+    },
+    {
+      "file": "03.mp3",
+      "textSha256": "5fe52b798d013a1126e075794045e84dd00a85103c159fd1241fb04e4aa93be7"
+    },
+    {
+      "file": "04.mp3",
+      "textSha256": "8ccd45e5bab6d4175417c1a420a2be419bfd3d30c3755e75b323f0385f092359"
+    },
+    {
+      "file": "05.mp3",
+      "textSha256": "76f929533ce52fda5933ac13d0a803bbc7e8d2809e744fe1711e5f157bfcd966"
+    },
+    {
+      "file": "06.mp3",
+      "textSha256": "7f35f596d360c063fd241d826e5bc0e94569b54e422e832f6eb9eebe4c77bd01"
+    },
+    {
+      "file": "07.mp3",
+      "textSha256": "d6085b7e344a264bb3a4629bca0c903e8e86b5db439b9fa292cb8729ca3587ce"
+    },
+    {
+      "file": "08.mp3",
+      "textSha256": "f71ed021be20790927638e50df105446c8e83e74ec3c800aabdd6778ec33a069"
+    },
+    {
+      "file": "09.mp3",
+      "textSha256": "ab849a18c22cd8db74611fbb623d09810d156605c98905772c9fcb2949743e04"
+    },
+    {
+      "file": "10.mp3",
+      "textSha256": "09aaca7997de7d75a0fd3c2314297904cf9bf639379f70c9cfe45dfae347eace"
+    },
+    {
+      "file": "11.mp3",
+      "textSha256": "c2f203a710d55deb29231eda689704c2aa68deae8c2e001fc09b8d1f7b2d3296"
+    },
+    {
+      "file": "12.mp3",
+      "textSha256": "19fc8b15a773591aa26aaecf3ded0c780e4b8f2794067571b7f91c94d39db42a"
+    },
+    {
+      "file": "13.mp3",
+      "textSha256": "16ef6c33ca5975fb941d7e2a46dc59785e5afcea6277d510f6da95f2597d2ffa"
+    },
+    {
+      "file": "14.mp3",
+      "textSha256": "a5e01cbb4bfd50ef9c31c75c02477521224b8930a32968cd3f72825357705fe9"
+    },
+    {
+      "file": "15.mp3",
+      "textSha256": "08c628cbfb4a853309525a70bcbe7af9ca1d3803208f48784447c475af06f737"
+    },
+    {
+      "file": "16.mp3",
+      "textSha256": "34537b20cadd218b8104119a991e77f0915d5c9b5a83f599aebc88e3b3c93efb"
+    },
+    {
+      "file": "17.mp3",
+      "textSha256": "e9ea937fc616e64e18eed93f8791cbb76da9b1bdc15587fb666c16b96a8d1b1a"
+    },
+    {
+      "file": "18.mp3",
+      "textSha256": "39ee848fcdc781196dc109ebd5ecc2ff802e088c0145e7563f554df9c1da0ff8"
+    },
+    {
+      "file": "19.mp3",
+      "textSha256": "89ed4a760139262b767689a198e02b4703a50579b346a36cdbbe81bb377c2322"
+    }
+  ]
+}

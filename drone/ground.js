@@ -3,9 +3,8 @@ import {lonLatToLocal} from '../src/geo.js';
 
 // Geographic ways from OSM; rendering widths/materials are illustrative. No photo tiles or remote map API calls.
 export async function addHeritageGround({world,renderer,url='data/ist/heritage-ground.json'}){
-  const response=await fetch(url);
-  if(!response.ok)throw Error('Zemin verisi '+response.status);
-  const data=await response.json();
+  let data=world.groundData;
+  if(!data){const response=await fetch(url);if(!response.ok)throw Error('Zemin verisi '+response.status);data=await response.json();}
   const [west,south,east,north]=data.bounds;
   const corners=[[west,south],[west,north],[east,south],[east,north]].map(p=>lonLatToLocal(...p));
   const x0=Math.min(...corners.map(p=>p.x)),z0=Math.min(...corners.map(p=>p.z));

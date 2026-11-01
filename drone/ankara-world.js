@@ -11,6 +11,8 @@ import * as T from 'three';
 import {setGeoRegion,lonLatToLocal} from '../src/geo.js';
 import {createUtm} from '../src/maps/utm.js';
 import {createEnvironment} from '../src/world-sf/environment.js';
+import {searchAreas} from './search-site.js';
+import {pointInRing,distanceToRing} from './area.js';
 
 export const ANK_DATA='data/ank/';
 
@@ -30,24 +32,6 @@ export function heightSampler(grid,fallback){
     const h=(a,b)=>heights[b*cols+a];
     return (h(i,j)*(1-fx)+h(i+1,j)*fx)*(1-fz)+(h(i,j+1)*(1-fx)+h(i+1,j+1)*fx)*fz;
   };
-}
-
-function pointInRing(x,z,ring){
-  let inside=false;
-  for(let i=0,j=ring.length-1;i<ring.length;j=i++){
-    const [xi,zi]=ring[i],[xj,zj]=ring[j];
-    if((zi>z)!==(zj>z)&&x<(xj-xi)*(z-zi)/(zj-zi)+xi)inside=!inside;
-  }
-  return inside;
-}
-function distanceToRing(x,z,ring){
-  let d=Infinity;
-  for(let i=0,j=ring.length-1;i<ring.length;j=i++){
-    const [ax,az]=ring[j],[bx,bz]=ring[i],dx=bx-ax,dz=bz-az,l=dx*dx+dz*dz;
-    const t=l?Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/l)):0;
-    d=Math.min(d,Math.hypot(x-ax-t*dx,z-az-t*dz));
-  }
-  return d;
 }
 
 /** Building footprints with a 50 m grid index: top height at a point and sphere hit test. */
@@ -138,8 +122,9 @@ export async function createAnkaraWorld({scene,renderer,camera,quality=null,onPr
   onProgress(.15,'Gökyüzü ve ışık');
   const environment=await createEnvironment({scene,renderer,camera,map:{id:'ank',fogBank:false},quality});
   onProgress(.35,'Arazi');
-  const [grid,buildingData,landmarkData]=await Promise.all([
+  const [grid,buildingData,landmarkData,groundData]=await Promise.all([
     json(ANK_DATA+'terrain.json',true),json(ANK_DATA+'buildings.json',true),json(ANK_DATA+'landmarks.json',true),
+    json(ANK_DATA+'ground.json',true),
   ]);
   const fallback=region.fallbackElevation??880;
   const ground=heightSampler(grid,fallback);
@@ -171,7 +156,7 @@ export async function createAnkaraWorld({scene,renderer,camera,quality=null,onPr
   onProgress(1,'Hazır');
   let playable=false;
   return {
-    region,environment,terrain,layers,landmarks,sources,obstacles,
+    region,environment,terrain,layers,landmarks,sources,obstacles,groundData,searchAreas:searchAreas(groundData,lonLatToLocal),
     sunDirection:environment.sunDirection,
     setQuality(q){environment.setQuality?.(q)},
     getGroundHeight:ground,

@@ -1,6 +1,18 @@
 # Ankara / Anıtkabir — ilerleme ve devir notu
 
-Son güncelleme: 31 Ekim 2026, 20:20 · sürüm `ank-0.1.0` + gerçek arazi (İstanbul normal v0.9.2 tabanlı)
+## 1 Kasım 2026 · Yerel sürüm `ank-0.2.0`
+
+Sağ görev haritası açılışta Ordular Sokak, İlk Sokak, Hedef Sokak, Akdeniz Caddesi, İleri Sokak ve Anıtkabir'i gösterir. Sokak çizgileri ve etiketleri pakette bulunur. **Merkezle** görev rotasını, **Anıtkabir sokakları** açılış görünümünü getirir.
+
+Müzik açıkken drone Anıtkabir yerleşkesi içinde **Atam Sen Rahat Uyu**, dışında **Ankara’nın Taşına Bak** çalar. Tandoğan tarafındaki kalkış pedi yerleşke sınırı içindedir. İki kayıt da yerel pakettedir.
+
+Üç boyutlu sahne Copernicus yüksekliklerini ve OpenStreetMap bina, yol ve park verilerini kullanır. Gece termal arama dersi hedefi yakındaki uygun bir yeşil alana yerleştirir. Ankara sesli kılavuzu güncellendi. Ayrıntılı Anıtkabir modeli bekliyor.
+
+Node.js 22+ ile proje klasöründe sırasıyla `npm ci`, `npm test`, `npm run build` ve `npm start` çalıştırılır. Önizleme <http://127.0.0.1:5188/> adresindedir. Bu sürüm yerelde test edildi. Vercel yayını ayrı bir adımdır.
+
+İsteğe bağlı ArcGIS hava görüntüsü için derleme `ARCGIS_API_KEY` ortam değişkenini okur. Yerel seçenek Git dışında tutulan `imagery.local.json` dosyasındaki `apiKey` alanıdır. Anahtar tarayıcıya gönderildiği için yalnız gerekli görüntüleme yetkisini verin ve izinli kaynağı Ankara sitesine kısıtlayın. Vercel değişkenini ayarladıktan sonra yeni derleme gerekir. Hesap parolası kullanılmaz.
+
+## 31 Ekim 2026 tarihli önceki devir kaydı · `ank-0.1.0`
 
 Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okunacak nottur. Önce bunu, sonra
 `CLAUDE-ANKARA-DEVIR.md` dosyasını okuyun.
