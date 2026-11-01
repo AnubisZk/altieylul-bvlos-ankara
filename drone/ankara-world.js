@@ -15,6 +15,7 @@ import {searchAreas} from './search-site.js';
 import {pointInRing,distanceToRing} from './area.js';
 import {createAnitkabirLayer,createMonumentField} from './anitkabir.js';
 import {createAslanliYolLayer,createRoadField} from './aslanli-yol.js';
+import {createCityBuildings} from './city-buildings.js';
 
 export const ANK_DATA='data/ank/';
 
@@ -159,7 +160,7 @@ export async function createAnkaraWorld({scene,renderer,camera,loader=null,quali
   const replaced=(x,z)=>monument?.inside(x,z)||road?.inside(x,z);
   const osmBuildings=(buildingData?.buildings||[]).filter(b=>!b.ring.some(([x,z])=>replaced(x,z)));
   const obstacles=createObstacleIndex(osmBuildings,terrainHeight);
-  const bm=buildingMesh(obstacles);if(bm)object.add(bm);
+  const bm=createCityBuildings(obstacles.list,{anisotropy:Math.min(8,renderer?.capabilities.getMaxAnisotropy?.()||1)});if(bm)object.add(bm);
   const layers=[];
   if(monument){
     onProgress(.75,'Anıtkabir modeli');

@@ -33,16 +33,14 @@ test('building index: top height inside the footprint, hit test with radius',()=
 });
 
 import {createMonumentField} from '../drone/anitkabir.js';
-test('Anıtkabir field: square floor is ground, Anıt Blok is an obstacle with a protective margin',()=>{
+test('Anıtkabir field: rebuilt Anıt Blok podium and polished square are ground, Meshy colonnades are obstacles',()=>{
   const data=JSON.parse(fs.readFileSync('data/ank/anitkabir.json','utf8'));
-  const f=createMonumentField(data);
+  const f=createMonumentField(data),ab=data.anitBlok;
   assert.ok(f.inside(0,0)&&!f.inside(600,600));
-  const top=f.heightAt(0,0);assert.ok(top>data.floorY+15,'Anıt Blok stands well above the square');
-  assert.equal(f.hitTest(0,top+1,0,.2)?.type,'landmark','inside the guard margin above the roof');
-  assert.equal(f.hitTest(0,top+10,0,.2),null);
+  assert.ok(Math.abs(f.groundAt(0,0)-(ab.squareTop-0.06+ab.podium.top))<1e-6,'podium top at Anıt Blok centre');
+  const sq=[-110*ab.axis[0]+0*ab.axis[1],-110*ab.axis[1]];   // meydan ekseninde
+  assert.equal(f.groundAt(...sq),ab.squareTop);assert.equal(f.heightAt(...sq),-Infinity);
   assert.equal(f.hitTest(600,950,600,.2),null);
-  // square centre (between the towers, OSM): walkable floor
-  const sq={x:-90,z:70};assert.equal(f.heightAt(sq.x,sq.z),-Infinity);assert.ok(Math.abs(f.groundAt(sq.x,sq.z)-data.floorY)<3);
 });
 
 import {createRoadField} from '../drone/aslanli-yol.js';

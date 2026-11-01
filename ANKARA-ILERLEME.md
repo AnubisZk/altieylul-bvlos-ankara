@@ -138,6 +138,20 @@ Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okun
 - Yeniden üretim: `node tools/ankara/prepare-aslanli-yol.mjs --osm <osm.json>` sonra
   `blender -b -P tools/blender/aslanli_yol.py -- --lion <aslan.glb> --out models/aslanli-yol`.
 
+## Anıt Blok yeniden yapımı, cilalı meydan ve şehir cepheleri (1 Kasım akşam)
+
+- Zafer Hoca'nın referans fotoğrafına göre Meshy'nin Anıt Blok'u (yuvarlak/eğri sütunlar) modelden kesildi
+  (`prepare-anitkabir.mjs` CUT kutusu, ~18.7 bin üçgen) ve `tools/blender/anit_blok.py` ile yeniden kuruldu:
+  peristil 41.65 × 57.35 m, 8 × 14 kare pilon (1.4 × 1.3 × 16 m; ODTÜ yapısal makale), meydana bakan kısa cephe,
+  6.4 m kaide + 36 basamak (yaklaşık), saçak kuşağı, korniş, kurşun çatı, koyu revak/cam yüzeyler. Çıktı:
+  `models/anit-blok.glb` (0.3 MB, ~1.7 bin üçgen + traverten dokular), `anit-blok-colliders.glb`, `anit-blok.blend`.
+- Tören Meydanı: 129 × 84 m bilgisiyle cilalı traverten levha zemin (pürüz 0.32), Meshy zemininin 0.98 m üstünde.
+  Kökü floorY + 0.92 m (`anitBlok.lift`); oyun zemini `anitkabir.json → anitBlok` (kaide, merdiven, meydan) ile.
+- Meshy'nin kendi bayrak direği kesildi. Bayrak direği fotoğraftaki gibi meydanın Anıt Blok ucunda, yan revak önüne
+  taşındı (a = −58, p = +40; OSM'de "flagpole" bilgi panosu aynı yanda). Konum yine yaklaşık.
+- Şehir binaları (`drone/city-buildings.js`): canvas ile üretilen cephe dokuları (pencere aksı 3.2 m, kat 3.0 m),
+  bina başına Ankara sıva renkleri, balkonlu / ofis cephe tipleri, düz beton ve kiremit çatılar; 5 çizim çağrısı.
+
 ## Sıradaki adımlar
 
 1. ~~OSM ile konum düzeltme~~ (yapıldı). Veri yenilenirse:

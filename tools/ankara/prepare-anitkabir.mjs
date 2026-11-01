@@ -41,6 +41,18 @@ const io=new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({'
 const doc=await io.read(args.in);
 await MeshoptSimplifier.ready;
 await doc.transform(dedup(),weld(),simplify({simplifier:MeshoptSimplifier,ratio:0.14,error:0.0008}),prune());
+// Meshy'nin Anıt Blok'u (yuvarlak/eğri sütunlar) çıkarılır; yerine tools/blender/anit_blok.py ile gerçek ölçülerde
+// kurulan models/anit-blok.glb gelir. Kesim kutusu yeni kaidenin (±25.2 × ±33.1 m) içinde kalır.
+const CUT={x:[0.4253,0.9265],z:[-0.2254,0.2054]};   // ±26.0 m enine
+const POLE=[-0.399,0.429];
+{const prim=doc.getRoot().listMeshes()[0].listPrimitives()[0],P=prim.getAttribute('POSITION'),I=prim.getIndices(),src=I.getArray(),keep=[],a=[0,0,0],b=[0,0,0],c=[0,0,0];
+  for(let t=0;t<src.length;t+=3){P.getElement(src[t],a);P.getElement(src[t+1],b);P.getElement(src[t+2],c);const cx=(a[0]+b[0]+c[0])/3,cz=(a[2]+b[2]+c[2])/3;
+    if(cx>=CUT.x[0]&&cx<=CUT.x[1]&&cz>=CUT.z[0]&&cz<=CUT.z[1])continue;
+    // Meshy'nin yan revak arkasındaki kendi bayrak direği (gerçek bayrak ayrı modeldir)
+    const cy=(a[1]+b[1]+c[1])/3;if(Math.hypot(cx-POLE[0],cz-POLE[1])<0.016&&cy>-0.075)continue;
+    keep.push(src[t],src[t+1],src[t+2])}
+  I.setArray(new (src.constructor)(keep));console.log(`Meshy Anıt Blok kesildi: ${(src.length-keep.length)/3} üçgen`);
+  await doc.transform(prune())}
 for(const m of doc.getRoot().listMaterials()){m.setMetallicFactor(0);m.setRoughnessFactor(1);m.setDoubleSided(false)}
 // roof colour fix on the base colour texture (before compression)
 for(const m of doc.getRoot().listMaterials()){
@@ -106,7 +118,11 @@ const data={
   transform:{modelAnchor:[MODEL.anitBlok.x,MODEL.squareFloorY,MODEL.anitBlok.z],scale:+scale.toFixed(4),rotationY:+theta.toFixed(6),position:[0,+lift.toFixed(2),0]},
   floorY,footprint,
   grid:{x0:gx0,z0:gz0,step:cell,cols,rows,heights},
-  flag:{model:'models/turk-bayragi.glb',height:24,pole:toLocalXZ(-0.30,0).map(n=>Math.round(n*10)/10),note:'Bayrak direği konumu temsili; gerekirse düzenleyin (yerel metre).'},
+  anitBlok:{model:'models/anit-blok.glb',colliders:'models/anit-blok-colliders.glb',lift:0.92,squareTop:+(floorY+0.92+0.06).toFixed(2),
+    square:{a0:-180,a1:-46,p:42},stairs:{a0:-46.94,a1:-33.98,p:25.4,top:6.4},podium:{a:33.98,p:26.13,top:6.4},axis:[+c.toFixed(6),+(-s).toFixed(6)],
+    note:'Anıt Blok ve meydan zemini Blender ile gerçek ölçülerde (tools/blender/anit_blok.py); revaklar Meshy'},
+  // bayrak: referans fotoğraf ve OSM bilgi panosu (node 11817227719) yönünde, meydanın Anıt Blok ucunda, yan revak önünde
+  flag:{model:'models/turk-bayragi.glb',height:24,base:+(floorY+0.92+0.06).toFixed(2),pole:[+(-58*c+40*s).toFixed(1),+(58*s+40*c).toFixed(1)],note:'Bayrak direği konumu temsili; gerekirse düzenleyin (yerel metre).'},
 };
 fs.writeFileSync(OUT_DATA,JSON.stringify(data));
 const ok=heights.filter(h=>h!==null).length;
