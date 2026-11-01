@@ -123,7 +123,7 @@ const data={
     note:'Anıt Blok ve meydan zemini Blender ile gerçek ölçülerde (tools/blender/anit_blok.py); revaklar Meshy'},
   // bayrak: Zafer Hoca'nın işaretlediği yer — Aslanlı Yol girişinin tam karşısındaki revak boşluğu (Meshy modelinde
   // a = −128…−101 arası açıklık, revak hattı p ≈ +48); taban Meshy zemininde (floorY + 0.5)
-  flag:{model:'models/turk-bayragi.glb',height:24,base:+(floorY+0.5).toFixed(2),pole:[+(-114.5*c+47*s).toFixed(1),+(114.5*s+47*c).toFixed(1)],note:'Bayrak direği konumu temsili; gerekirse düzenleyin (yerel metre).'},
+  flag:{model:'models/turk-bayragi.glb',height:24,base:+(floorY+0.5).toFixed(2),pole:[+(-104*c+47*s).toFixed(1),+(104*s+47*c).toFixed(1)],note:'Bayrak direği konumu temsili; gerekirse düzenleyin (yerel metre).'},
 };
 fs.writeFileSync(OUT_DATA,JSON.stringify(data));
 const ok=heights.filter(h=>h!==null).length;

@@ -148,7 +148,7 @@ Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okun
 - Tören Meydanı: 129 × 84 m bilgisiyle cilalı traverten levha zemin (pürüz 0.32), Meshy zemininin 0.98 m üstünde.
   Kökü floorY + 0.92 m (`anitBlok.lift`); oyun zemini `anitkabir.json → anitBlok` (kaide, merdiven, meydan) ile.
 - Meshy'nin kendi bayrak direği kesildi. Bayrak direği fotoğraftaki gibi meydanın Anıt Blok ucunda, yan revak önüne
-  taşındı; Zafer Hoca'nın işaretiyle son konum: Aslanlı Yol girişinin tam karşısındaki revak boşluğu (a = −114.5, p = +47).
+  taşındı; Zafer Hoca'nın işaretiyle son konum: Aslanlı Yol girişinin tam karşısındaki revak boşluğu (a = −104, p = +47; boşluğun Anıt Blok tarafı).
 - Şehir binaları (`drone/city-buildings.js`): canvas ile üretilen cephe dokuları (pencere aksı 3.2 m, kat 3.0 m),
   bina başına Ankara sıva renkleri, balkonlu / ofis cephe tipleri, düz beton ve kiremit çatılar; 5 çizim çağrısı.
 
