@@ -4,6 +4,7 @@
 // Three.js GLTFLoader + AnimationMixer ile tarayıcı içi kontrol: tools/blender/flag-check.html (npm start sonrası).
 import {NodeIO} from '@gltf-transform/core';
 import {ALL_EXTENSIONS} from '@gltf-transform/extensions';
+import {pathToFileURL} from 'node:url';
 
 export async function verifyFlag(file){
   const doc=await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(file);
@@ -48,7 +49,7 @@ export async function verifyFlag(file){
   return {fails,info};
 }
 
-if(import.meta.url===`file://${process.argv[1]}`){
+if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   const file=process.argv[2]||'models/turk-bayragi.glb';
   const {fails,info}=await verifyFlag(file);
   console.log(JSON.stringify(info,null,1));

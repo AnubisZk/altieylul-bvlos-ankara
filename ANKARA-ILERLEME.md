@@ -1,5 +1,14 @@
 # Ankara / Anıtkabir — ilerleme ve devir notu
 
+## 1 Kasım 2026 · Aslanlı Yol ve bayrak yayın kontrolü
+
+- Güncel kalkış açıklaması iki satırdır. “Tandoğan tarafında kalkış noktası.” ve “Anıtkabir çevresi gözlem rotası simülasyonudur.”
+- Aslanlı Yol, Anıtkabir ve bayrak entegrasyonu önceki model teslimlerinden alınmıştır. Gönderilen `turk-bayragi-paketi.zip` içindeki GLB ve Blender dosyaları repodakilerle SHA-256 bakımından aynıdır.
+- Yerel uygulamada **Tarihi yapı incele → Aslanlı Yol** ile yol, aslanlar, ağaçlar, ziyaretçiler ve meydandaki bayrak görüntülendi. Model yükleme hatası görülmedi. 80 test geçti.
+- `node tools/blender/verify-flag.mjs models/turk-bayragi.glb` komutunun Windows'ta da doğrulamayı çalıştırması düzeltildi. Bayrağın 24 morph hedefi, sabit direk kenarı ve beş saniyelik kesintisiz döngüsü doğrulandı.
+- ArcGIS `ARCGIS_API_KEY` Vercel Production ortamında tanımlıdır. Hava görüntüsü Ankara canlı adresinde çalışır. Bayrak direğinin konumu ve giriş kuleleri mevcut modelde temsili olarak korunmuştur.
+- Aşağıdaki eski kayıtlar geliştirme geçmişidir. Aslanlı Yol ve Anıtkabir modelleri artık paket içindedir.
+
 ## 1 Kasım 2026 · Yerel sürüm `ank-0.2.0`
 
 Sağ görev haritası açılışta Ordular Sokak, İlk Sokak, Hedef Sokak, Akdeniz Caddesi, İleri Sokak ve Anıtkabir'i gösterir. Sokak çizgileri ve etiketleri pakette bulunur. **Merkezle** görev rotasını, **Anıtkabir sokakları** açılış görünümünü getirir.
