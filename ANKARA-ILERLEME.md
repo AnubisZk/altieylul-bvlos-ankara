@@ -152,6 +152,15 @@ Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okun
 - Şehir binaları (`drone/city-buildings.js`): canvas ile üretilen cephe dokuları (pencere aksı 3.2 m, kat 3.0 m),
   bina başına Ankara sıva renkleri, balkonlu / ofis cephe tipleri, düz beton ve kiremit çatılar; 5 çizim çağrısı.
 
+## Heykel grupları (yer hazır, model bekleniyor)
+
+- Erkek grubu Hürriyet Kulesi önünde (t = −9.4), kadın grubu İstiklal Kulesi önünde (t = +9.4), s = 6 m kaideler.
+  `data/ank/aslanli-yol.json → statues`. Oyun `models/heykel-erkek.glb` ve `models/heykel-kadin.glb` dosyalarını
+  arar; yoksa kaide boş kalır. Model 4.2 m yüksekliğe ölçeklenir, ortalanır, ön yüzü (+Z) yol eksenine döner, kutu
+  çarpışması eklenir. Model hazırlığı: `node tools/ankara/prepare-heykel.mjs --in <meshy.glb> --out models/heykel-erkek.glb`.
+- Heykeller belirli bir sanatçının eserleri; Claude bunları taklit ederek modellemedi. Modeller Zafer Hoca tarafından
+  (ör. Meshy, kendi fotoğraflarından) sağlanacak.
+
 ## Sıradaki adımlar
 
 1. ~~OSM ile konum düzeltme~~ (yapıldı). Veri yenilenirse:

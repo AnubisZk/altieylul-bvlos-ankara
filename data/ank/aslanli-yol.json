@@ -90,5 +90,28 @@
    -316.8,
    -171.84
   ]
- ]
+ ],
+ "statues": [
+  {
+   "id": "erkek",
+   "name": "Erkek heykel grubu",
+   "tower": "Hürriyet Kulesi",
+   "model": "models/heykel-erkek.glb",
+   "s": 6.0,
+   "t": -9.4,
+   "height": 4.2,
+   "plinthTop": 1.6
+  },
+  {
+   "id": "kadin",
+   "name": "Kadın heykel grubu",
+   "tower": "İstiklal Kulesi",
+   "model": "models/heykel-kadin.glb",
+   "s": 6.0,
+   "t": 9.4,
+   "height": 4.2,
+   "plinthTop": 1.6
+  }
+ ],
+ "statuesNote": "Modeller Zafer Hoca tarafından (ör. Meshy, kendi fotoğraflarından) sağlanır; dosya yoksa kaide boş kalır. Yükseklik yaklaşık."
 }

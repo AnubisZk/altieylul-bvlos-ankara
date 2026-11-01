@@ -66,9 +66,27 @@ export async function createAslanliYolLayer({loader,data,renderer}){
   const [ax,az]=data.start,[ux,uz]=data.dir,mid=new T.Vector3(ax+ux*data.length/2,data.y0,az+uz*data.length/2);
   const lod=new T.LOD();lod.name='aslanli-yol';lod.position.copy(mid);
   for(const [scene,dist] of [[high.scene,data.lod.near],[low.scene,data.lod.mid],[far,data.lod.far]]){const g=new T.Group();g.position.copy(mid).negate();g.add(scene);lod.addLevel(g,dist)}
-  const colliders=createBoxColliders(col.scene);
   const root=new T.Group();root.name='aslanli-yol-root';root.add(lod);
+  const colliders=createBoxColliders(col.scene);
+  // Heykel grupları (Hürriyet önünde erkek, İstiklal önünde kadın): dışarıdan sağlanan GLB'ler, kaidelerin üstüne
+  // oturtulur, yola (eksene) dönük; dosya yoksa atlanır.
+  const statues=[];
+  for(const st of data.statues||[]){
+    try{
+      const g=await loader.loadGLTF(st.model),obj=g.scene;obj.updateMatrixWorld(true);
+      const box=new T.Box3().setFromObject(obj),size=box.getSize(new T.Vector3()),k=st.height/Math.max(size.y,1e-6);
+      const holder=new T.Group();holder.name='heykel-'+st.id;
+      obj.position.set(-(box.min.x+box.max.x)/2,-box.min.y,-(box.min.z+box.max.z)/2);holder.add(obj);holder.scale.setScalar(k);
+      const s=st.s,t=st.t,px=ax+ux*s-uz*t,pz=az+uz*s+ux*t,top=data.y0+(data.y1-data.y0)*Math.max(0,s)/data.length+st.plinthTop;
+      holder.position.set(px,top,pz);
+      const fx=uz*Math.sign(t),fz=-ux*Math.sign(t);holder.rotation.y=Math.atan2(fx,fz);   // model +Z → yol eksenine
+      obj.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;if(o.material)o.material.metalness=0}});
+      root.add(holder);statues.push(st.id);
+      colliders.boxes.push(...createBoxColliders((()=>{const m=new T.Mesh(new T.BoxGeometry(size.x*k+0.4,st.height,size.z*k+0.4));m.position.set(px,top+st.height/2,pz);m.rotation.y=holder.rotation.y;m.name='COL_Heykel_'+st.id;const gg=new T.Group();gg.add(m);return gg})()).boxes);
+    }catch(e){if(!(e&&(e.status===404||/404/.test(e.message||''))))console.warn('[aslanli-yol] heykel yüklenemedi',st.id,e?.message)}
+  }
+
   return {object:root,lod,colliders,heightAt:(x,z)=>colliders.heightAt(x,z),hitTest:(x,y,z,r)=>colliders.hitTest(x,y,z,r),
     update(dt,cam){lod.update(cam)},
-    stats:{colliders:colliders.boxes.length}};
+    stats:{get colliders(){return colliders.boxes.length},statues}};
 }
