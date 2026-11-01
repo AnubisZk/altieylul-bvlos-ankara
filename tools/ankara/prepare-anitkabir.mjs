@@ -121,9 +121,9 @@ const data={
   anitBlok:{model:'models/anit-blok.glb',colliders:'models/anit-blok-colliders.glb',lift:0.92,squareTop:+(floorY+0.92+0.06).toFixed(2),
     square:{a0:-180,a1:-46,p:42},stairs:{a0:-46.94,a1:-33.98,p:25.4,top:6.4},podium:{a:33.98,p:26.13,top:6.4},axis:[+c.toFixed(6),+(-s).toFixed(6)],
     note:'Anıt Blok ve meydan zemini Blender ile gerçek ölçülerde (tools/blender/anit_blok.py); revaklar Meshy'},
-  // bayrak: Zafer Hoca'nın havadan fotoğrafı ve kroki — meydanın Anıt Blok ucunda, Aslanlı Yol girişinin karşı
-  // yanında, köşe köşkünün (İnkılap Kulesi) önünde, dış merdivenlere yakın (a = −54, p = +37)
-  flag:{model:'models/turk-bayragi.glb',height:24,base:+(floorY+0.92+0.06).toFixed(2),pole:[+(-54*c+37*s).toFixed(1),+(54*s+37*c).toFixed(1)],note:'Bayrak direği konumu temsili; gerekirse düzenleyin (yerel metre).'},
+  // bayrak: Zafer Hoca'nın işaretlediği yer — Aslanlı Yol girişinin tam karşısındaki revak boşluğu (Meshy modelinde
+  // a = −128…−101 arası açıklık, revak hattı p ≈ +48); taban Meshy zemininde (floorY + 0.5)
+  flag:{model:'models/turk-bayragi.glb',height:24,base:+(floorY+0.5).toFixed(2),pole:[+(-114.5*c+47*s).toFixed(1),+(114.5*s+47*c).toFixed(1)],note:'Bayrak direği konumu temsili; gerekirse düzenleyin (yerel metre).'},
 };
 fs.writeFileSync(OUT_DATA,JSON.stringify(data));
 const ok=heights.filter(h=>h!==null).length;
