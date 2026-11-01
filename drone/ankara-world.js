@@ -142,7 +142,9 @@ export async function createAnkaraWorld({scene,renderer,camera,loader=null,quali
   const cols=Math.round((b.maxX-b.minX)/step),rows=Math.round((b.maxZ-b.minZ)/step);
   const geo=new T.PlaneGeometry(b.maxX-b.minX,b.maxZ-b.minZ,cols,rows);geo.rotateX(-Math.PI/2);
   geo.translate((b.minX+b.maxX)/2,0,(b.minZ+b.maxZ)/2);
-  const p=geo.attributes.position;for(let i=0;i<p.count;i++)p.setY(i,ground(p.getX(i),p.getZ(i)));
+  // visual terrain sinks 2 m under the monument's square floor (no z-fighting with the model); physics uses `ground`
+  const visual=monument?(x,z)=>monument.inside(x,z)?monument.floorY-2:terrainHeight(x,z):ground;
+  const p=geo.attributes.position;for(let i=0;i<p.count;i++)p.setY(i,visual(p.getX(i),p.getZ(i)));
   geo.computeVertexNormals();
   const terrainMesh=new T.Mesh(geo,terrainMaterial(shared));terrainMesh.receiveShadow=true;terrainMesh.name='ank-terrain';
   const object=new T.Group();object.name='ankara-world';object.add(terrainMesh);
@@ -175,6 +177,7 @@ export async function createAnkaraWorld({scene,renderer,camera,loader=null,quali
     getObstacleHeight(x,z){let h=obstacles.heightAt(x,z);for(const l of layers)if(l.heightAt)h=Math.max(h,l.heightAt(x,z));return h},
     hitTest(x,y,z,r){for(const l of layers){const hit=l.hitTest?.(x,y,z,r);if(hit)return hit}return obstacles.hitTest(x,y,z,r)},
     addLayer(layer){layers.push(layer);if(layer.object)object.add(layer.object)},
+    setWind(w){for(const l of layers)l.setWind?.(w)},
     setPlayable(){playable=true},
     get playable(){return playable},
     update(dt,cam){environment.update(dt,cam);for(const l of layers)l.update?.(dt,cam)},

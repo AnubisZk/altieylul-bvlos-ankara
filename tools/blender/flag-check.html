@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- Three.js GLTFLoader + AnimationMixer ile bayrak denetimi.
+     Depo kökünden:  python3 -m http.server 8080  →  http://127.0.0.1:8080/tools/blender/flag-check.html
+     ?f=<glb yolu> (varsayılan ../../models/turk-bayragi.glb), ?wind=8 (m/s), ?dir=0 (derece) -->
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bayrak denetimi</title>
+<style>body{margin:0;background:#cfd8dc;font:14px system-ui,sans-serif;color:#102027}#out{position:fixed;left:8px;top:8px;background:#fffd;padding:8px 10px;white-space:pre;max-width:46ch;border-radius:6px}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"../../node_modules/three/build/three.module.js","three/addons/":"../../node_modules/three/examples/jsm/"}}</script>
+</head><body><div id="out">Yükleniyor…</div>
+<script type="module">
+import * as T from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+const q=new URLSearchParams(location.search),out=document.getElementById('out');
+const file=q.get('f')||'../../models/turk-bayragi.glb',wind=+(q.get('wind')??8),dir=+(q.get('dir')??0);
+const renderer=new T.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=T.SRGBColorSpace;document.body.append(renderer.domElement);
+const scene=new T.Scene();scene.background=new T.Color(0xbcd0dc);
+scene.add(new T.HemisphereLight(0xffffff,0x88aa77,1.2));const sun=new T.DirectionalLight(0xffffff,2.2);sun.position.set(-6,10,8);scene.add(sun);
+const gltf=await new GLTFLoader().loadAsync(file);scene.add(gltf.scene);
+const flag=gltf.scene.getObjectByName('TurkishFlag'),pole=gltf.scene.getObjectByName('FlagPole');
+const mesh=flag.isMesh?flag:flag.getObjectByProperty('isMesh',true);
+const clip=gltf.animations[0];const mixer=new T.AnimationMixer(gltf.scene);const action=mixer.clipAction(clip);action.play();
+// rüzgâr: hız → oynatma hızı, yön → bayrağın direk ekseni etrafındaki dönüşü (kumaş rüzgârın estiği yöne uzanır)
+mixer.timeScale=0.45+wind/11;flag.rotation.y=T.MathUtils.degToRad(dir);
+// CPU'da morph uygulanmış konum
+const P=mesh.geometry.attributes.position,M=mesh.geometry.morphAttributes.position,rel=mesh.geometry.morphTargetsRelative;
+const at=(i,o=new T.Vector3())=>{o.fromBufferAttribute(P,i);const base=o.clone();mesh.morphTargetInfluences.forEach((w,k)=>{if(!w)return;const d=new T.Vector3().fromBufferAttribute(M[k],i);rel?o.addScaledVector(d,w):o.addScaledVector(d.sub(base),w)});return o};
+let minX=Infinity;for(let i=0;i<P.count;i++)minX=Math.min(minX,P.getX(i));
+const hoist=[];for(let i=0;i<P.count;i++)if(Math.abs(P.getX(i)-minX)<1e-4)hoist.push(i);
+const fly=hoist.length?P.count-1:0;
+// setTime() de timeScale ile çarpılır: denetim gerçek klip zamanında yapılır
+const sample=t=>{const ts=mixer.timeScale;mixer.timeScale=1;mixer.setTime(t);mixer.timeScale=ts;return {h:hoist.map(i=>at(i)),f:at(fly)}};
+const rest=sample(0);let maxHoist=0,maxFly=0;
+for(let s=0;s<=240;s++){const r=sample(clip.duration*s/240);r.h.forEach((p,i)=>maxHoist=Math.max(maxHoist,p.distanceTo(rest.h[i])));maxFly=Math.max(maxFly,r.f.distanceTo(rest.f))}
+const a=sample(0).f,b=sample(clip.duration-1e-4).f,loopJump=a.distanceTo(b);
+const map=mesh.material.map;
+const res={dosya:file,klip:clip.name,sure_sn:+clip.duration.toFixed(3),izler:clip.tracks.map(t=>t.name),morph:M.length,
+  direkKenariMaksHareket_m:+maxHoist.toExponential(2),serbestUcMaksHareket_m:+maxFly.toFixed(3),donguSicramasi_m:+loopJump.toExponential(2),
+  doku:map?.image?`${map.image.width}×${map.image.height}`:'YOK',direk:!!pole};
+res.sonuc=(maxHoist<1e-3&&maxFly>0.05&&loopJump<0.02&&map?.image&&res.izler.some(n=>n.endsWith('morphTargetInfluences')))?'GEÇTİ':'KALDI';
+mixer.setTime(0);window.flagCheck=res;out.textContent=Object.entries(res).map(([k,v])=>`${k}: ${Array.isArray(v)?v.join(', '):v}`).join('\n');
+const cam=new T.PerspectiveCamera(40,innerWidth/innerHeight,.1,200);const box=new T.Box3().setFromObject(flag);const c=box.getCenter(new T.Vector3());
+cam.position.set(c.x+1,c.y-1,c.z+12);cam.lookAt(c);
+const clock=new T.Clock();renderer.setAnimationLoop(()=>{mixer.update(clock.getDelta());renderer.render(scene,cam)});
+</script></body></html>

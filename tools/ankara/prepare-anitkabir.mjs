@@ -106,7 +106,7 @@ const data={
   transform:{modelAnchor:[MODEL.anitBlok.x,MODEL.squareFloorY,MODEL.anitBlok.z],scale:+scale.toFixed(4),rotationY:+theta.toFixed(6),position:[0,+lift.toFixed(2),0]},
   floorY,footprint,
   grid:{x0:gx0,z0:gz0,step:cell,cols,rows,heights},
-  flag:{pole:toLocalXZ(-0.30,0).map(n=>Math.round(n*10)/10),note:'Bayrak direği konumu temsili; gerekirse düzenleyin (yerel metre).'},
+  flag:{model:'models/turk-bayragi.glb',height:24,pole:toLocalXZ(-0.30,0).map(n=>Math.round(n*10)/10),note:'Bayrak direği konumu temsili; gerekirse düzenleyin (yerel metre).'},
 };
 fs.writeFileSync(OUT_DATA,JSON.stringify(data));
 const ok=heights.filter(h=>h!==null).length;

@@ -154,7 +154,7 @@ function animate(now){requestAnimationFrame(animate);const dt=Math.min(.08,(now-
     for(let i=0;i<(sim.mode==='manual'?1:rate);i++)guardedTick(dt);
     const {x,y,z,heading:h}=sim;model.position.set(x,y-.2,z);model.rotation.set(-sim.speed*.007,-h,0);if(sim.armed&&!sim.paused){model.rotation.z=(sim.mode==='manual'?-sim.manualSide*.025:0)-(sim.wind?.speed||0)*.012*Math.sin((sim.wind?.direction||0)*Math.PI/180-h);rotors.forEach((r,i)=>r.rotation.y+=(i%2?1:-1)*dt*80)}
     const fpv=view==='fpv'&&sim.mode!=='ready'&&!(sim.mode==='complete'&&sim.armed);model.visible=!fpv;if(view==='heritage'&&heritageSite){const p=heritageSite;const y=world.getGroundHeight(p.x,p.z)+28;target.set(p.x,y,p.z);eye.set(p.x+Math.sin(cameraOrbit+.65)*heritageDistance,y+heritageDistance*.55,p.z+Math.cos(cameraOrbit+.65)*heritageDistance)}else if(fpv){eye.set(x+Math.sin(h)*.4,y+.3,z-Math.cos(h)*.4);target.set(x+Math.sin(h)*100,y-Math.tan(training.pitch)*100,z-Math.cos(h)*100)}else{const a=h+cameraOrbit+.65;eye.set(x+Math.sin(a)*cameraDistance,y+cameraDistance*.4,z+Math.cos(a)*cameraDistance);target.set(x,y+.1,z)}camera.position.copy(eye);camera.lookAt(target);
-    music.updatePosition(sim);pilot.update();weather.update(dt);world.update(dt,camera);training.update(dt);aerialImagery?.update(now,target);harbor.update(sim.paused?0:dt*(sim.mode==='manual'?1:rate),sim.wind);uiAcc+=dt;if(uiAcc>.2){uiAcc=0;updateUI()}
+    music.updatePosition(sim);pilot.update();weather.update(dt);world.setWind?.(sim.wind);world.update(dt,camera);training.update(dt);aerialImagery?.update(now,target);harbor.update(sim.paused?0:dt*(sim.mode==='manual'?1:rate),sim.wind);uiAcc+=dt;if(uiAcc>.2){uiAcc=0;updateUI()}
   }
   renderer.render(scene,camera);
 }

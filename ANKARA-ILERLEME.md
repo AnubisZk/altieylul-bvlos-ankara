@@ -84,14 +84,36 @@ Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okun
 - Vercel kimlik koruması yalnız önizleme (preview) yayınlarında; üretim adresi herkese açık (öğrenciler girebilsin diye).
 - İstanbul siteleri (Netlify) değiştirilmedi.
 
+## Anıtkabir modeli ve Türk bayrağı (1 Kasım)
+
+- Zafer Hoca Meshy ile Anıtkabir modeli üretti (`Meshy_AI_Anıtkabir_Under_Dram_…glb`, 80 MB, 486 bin üçgen, 8K doku).
+  Ham dosya repoda yok; yeniden işlemek için: `node tools/ankara/prepare-anitkabir.mjs --in <meshy.glb>`.
+- `models/anitkabir.glb`: 68 bin üçgen, 3.6 MB, WebP 2048 doku; Meshy'nin mavi çatıları kurşun griye çevrildi, metalik 0.
+- Yerleşim (`data/ank/anitkabir.json`): Anıt Blok → OSM Türbe (yerel 0,0); yön → 8 kule düğümünün merkezinden Türbe'ye
+  kerteriz ≈ 52° (rotation.y 38°); ölçek Anıt Blok cephesi 57.35 m → 120.7 m/birim; meydan zemini GLO-30'dan 902.7 m.
+  Aslanlı Yol (OSM) modelin yan girişine düşüyor; görsel kontrol yapıldı.
+- Çarpışma: 1 m üst yüzey ızgarası (`drone/anitkabir.js`). Meydan/basamaklar zemin; Anıt Blok, revaklar, kuleler engel.
+  Anıta 2.5 m'den fazla yaklaşınca çarpışma YOK: adım geri alınır, drone konum korur, uyarı verir (`main.js guardedTick`).
+  Ayak izindeki OSM binaları (Türbe, müze, revaklar) gösterilmiyor; görsel arazi meydan altında 2 m çökertildi.
+- Türk bayrağı: `tools/blender/turk_bayragi.py` (Blender 4.2'de, bpy modülüyle çalıştırılıp doğrulandı) →
+  `models/turk-bayragi.blend` ve `models/turk-bayragi.glb` (FlagPole + TurkishFlag, "FlagWave", 24 morph target,
+  120 kare @ 24 fps = 5 sn, 2450 köşe, doku 2048×1336 PNG gömülü). Resmî ölçüler (2994 sayılı Kanun) betikte yazılı.
+  Ön/arka yüz ayrı katman; direk kenarı tüm hedeflerde sabit (maks 1e-13 m); ilk/son kare aynı (sıçrama 6e-5 m).
+- Doğrulama: `node tools/blender/verify-flag.mjs models/turk-bayragi.glb` (Node) ve `tools/blender/flag-check.html`
+  (Three.js GLTFLoader + AnimationMixer; depo kökünde `python3 -m http.server`). İkisi de GEÇTİ.
+- Oyunda: bayrak direği meydanda (yerel -92.3, 73.6; **konum temsili**, `anitkabir.json` → `flag.pole`). Eğitmen
+  masasındaki rüzgâr hızı animasyon hızını, rüzgâr yönü bayrağın yönünü belirler (kumaş rüzgârın gittiği yöne uzanır).
+- Blender'ı yeniden çalıştırma: `blender -b -P tools/blender/turk_bayragi.py -- --out models --wind-speed 8`
+  (ayarlar: --width, --pole-height, --wind-dir, --frames, --keys, --nx, --ny, --texture, --anitkabir).
+
 ## Sıradaki adımlar
 
 1. ~~OSM ile konum düzeltme~~ (yapıldı). Veri yenilenirse:
    `node tools/ankara/prepare-data.mjs --dem <GLO-30 .tif> --osm <ankara-merkez.osm.json>`
 2. ~~Tarihi yapı menüsü~~ (yapıldı; `mission.js` HERITAGE ↔ `landmarks.json` kimlikleri).
 3. Gece arama noktalarının (`night-training.js`) Ankara'da park/açık alana düştüğünü doğrula.
-4. Anıtkabir temsili modeli (Blender betiği → GLB → `addLayer` ile çarpışma ve iniş uygunluğu). Anıt Blok merdiven
-   ve teras zemini; çarpışmada hasar efekti yok, durup uyarı.
+4. ~~Anıtkabir modeli ve bayrak~~ (yapıldı). Açık: gerçek bayrak direği konumu; Aslanlı Yol aslanları ve kuleler
+   için ayrıntı; modelin doku kalitesi yakın uçuşta düşük (Meshy sınırı).
 5. Kılavuz (`guide-content.json`) ve hızlı başlangıç metnindeki kalan İstanbul/deniz ifadelerini tek tek gözden geçir.
 6. ArcGIS anahtarı gelince: anahtarın izinli adresine `altieylul-bvlos-ankara.vercel.app` yazılmalı. Vercel'de
    build sırasında `imagery.local.json` yok; anahtarı build'e bir ortam değişkeniyle vermek için `tools/build.mjs`
