@@ -13,6 +13,7 @@ import {createUtm} from '../src/maps/utm.js';
 import {createEnvironment} from '../src/world-sf/environment.js';
 import {searchAreas} from './search-site.js';
 import {pointInRing,distanceToRing} from './area.js';
+import {createAnitkabirLayer,createMonumentField} from './anitkabir.js';
 
 export const ANK_DATA='data/ank/';
 
@@ -115,20 +116,23 @@ function buildingMesh(index){
   return mesh;
 }
 
-export async function createAnkaraWorld({scene,renderer,camera,quality=null,onProgress=()=>{}}){
+export async function createAnkaraWorld({scene,renderer,camera,loader=null,quality=null,onProgress=()=>{}}){
   onProgress(.05,'Ankara bölge tanımı');
   const region=await json(ANK_DATA+'region.json');
   setGeoRegion(region,createUtm(region.crs));
   onProgress(.15,'Gökyüzü ve ışık');
   const environment=await createEnvironment({scene,renderer,camera,map:{id:'ank',fogBank:false},quality});
   onProgress(.35,'Arazi');
-  const [grid,buildingData,landmarkData,groundData]=await Promise.all([
+  const [grid,buildingData,landmarkData,groundData,monumentData]=await Promise.all([
     json(ANK_DATA+'terrain.json',true),json(ANK_DATA+'buildings.json',true),json(ANK_DATA+'landmarks.json',true),
-    json(ANK_DATA+'ground.json',true),
+    json(ANK_DATA+'ground.json',true),json(ANK_DATA+'anitkabir.json',true),
   ]);
   const fallback=region.fallbackElevation??880;
-  const ground=heightSampler(grid,fallback);
-  const sources={terrain:grid?grid.source||'GLO-30':'geçici düz zemin',buildings:buildingData?buildingData.source||'OSM':'yok',landmarks:landmarkData?'veri':'varsayılan'};
+  const terrainHeight=heightSampler(grid,fallback);
+  // inside the Anıtkabir footprint the ground is the model's square floor (terrain flattened under the monument)
+  const monument=monumentData&&loader?createMonumentField(monumentData):null;
+  const ground=monument?(x,z)=>monument.groundAt(x,z)??terrainHeight(x,z):terrainHeight;
+  const sources={monument:monument?'Meshy (temsili)':'yok',terrain:grid?grid.source||'GLO-30':'geçici düz zemin',buildings:buildingData?buildingData.source||'OSM':'yok',landmarks:landmarkData?'veri':'varsayılan'};
 
   const shared={
     uGroundTex:{value:null},uGroundXform:{value:new T.Vector4()},uGroundEnabled:{value:0},
@@ -146,9 +150,16 @@ export async function createAnkaraWorld({scene,renderer,camera,quality=null,onPr
   scene.add(object);
 
   onProgress(.6,'Binalar');
-  const obstacles=createObstacleIndex(buildingData?.buildings,ground);
+  // OSM footprints the monument model replaces (Türbe, museum, colonnades) are left out
+  const osmBuildings=(buildingData?.buildings||[]).filter(b=>!monument||!b.ring.some(([x,z])=>monument.inside(x,z)));
+  const obstacles=createObstacleIndex(osmBuildings,terrainHeight);
   const bm=buildingMesh(obstacles);if(bm)object.add(bm);
   const layers=[];
+  if(monument){
+    onProgress(.75,'Anıtkabir modeli');
+    try{const layer=await createAnitkabirLayer({loader,data:monumentData,renderer});layers.push(layer);object.add(layer.object)}
+    catch(e){console.warn('[anitkabir] model yüklenemedi; OSM zemini korunuyor',e.message);sources.monument='yüklenemedi'}
+  }
 
   const raw=landmarkData?.landmarks||[{id:'anit-blok',name:'Anıtkabir · Anıt Blok',lon:region.origin.lon,lat:region.origin.lat}];
   const landmarks={landmarks:raw.map(l=>{const q=Number.isFinite(l.x)?l:lonLatToLocal(l.lon,l.lat);return {...l,x:q.x,z:q.z}})};

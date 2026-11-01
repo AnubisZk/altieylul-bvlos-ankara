@@ -31,3 +31,16 @@ test('building index: top height inside the footprint, hit test with radius',()=
   assert.ok(idx.hitTest(5,905,5,.2));assert.equal(idx.hitTest(5,913,5,.2),null);
   assert.ok(idx.hitTest(10.25,905,5,.3));assert.equal(idx.hitTest(11,905,5,.3),null);
 });
+
+import {createMonumentField} from '../drone/anitkabir.js';
+test('Anıtkabir field: square floor is ground, Anıt Blok is an obstacle with a protective margin',()=>{
+  const data=JSON.parse(fs.readFileSync('data/ank/anitkabir.json','utf8'));
+  const f=createMonumentField(data);
+  assert.ok(f.inside(0,0)&&!f.inside(600,600));
+  const top=f.heightAt(0,0);assert.ok(top>data.floorY+15,'Anıt Blok stands well above the square');
+  assert.equal(f.hitTest(0,top+1,0,.2)?.type,'landmark','inside the guard margin above the roof');
+  assert.equal(f.hitTest(0,top+10,0,.2),null);
+  assert.equal(f.hitTest(600,950,600,.2),null);
+  // square centre (between the towers, OSM): walkable floor
+  const sq={x:-90,z:70};assert.equal(f.heightAt(sq.x,sq.z),-Infinity);assert.ok(Math.abs(f.groundAt(sq.x,sq.z)-data.floorY)<3);
+});

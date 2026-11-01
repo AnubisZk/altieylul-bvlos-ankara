@@ -29,6 +29,16 @@ const names={ready:'UÇUŞA HAZIR',takeoff:'OTOMATİK KALKIŞ',mission:'ROTA TAK
 const clock=t=>`${String(Math.floor(t/60)).padStart(2,'0')}:${String(Math.floor(t%60)).padStart(2,'0')}`;
 let world,harbor,model,rotors=[],sim,route=[],home,ready=false,editing=false,view='fpv',rate=1,lastEvent=-1,lastMode='',shownReport=false;
 let markers=[],routeLine,trailLine,droneMarker,homeMarker,geofence;
+// Anıtkabir protection: touching the monument's safety margin never crashes the drone. The step is undone, the drone
+// holds position and the pilot is warned (no damage or debris effects on the monument).
+let monumentGuard=null,guardNotice=0;
+function guardedTick(dt){
+  const safe={x:sim.x,y:sim.y,z:sim.z};monumentGuard=null;sim.tick(dt);
+  if(!monumentGuard)return;
+  sim.x=safe.x;sim.y=safe.y;sim.z=safe.z;sim.speed=0;sim.manualForward=0;sim.manualSide=0;
+  if(sim.mode==='mission'||sim.mode==='rth')sim.hold();
+  const now=performance.now();if(now-guardNotice>4000){guardNotice=now;sim.log?.('Anıtkabir koruma mesafesi • drone durduruldu');status('Anıtkabir koruma mesafesi: drone durduruldu. Yükselerek veya geri çekilerek uzaklaş.')}
+}
 // Prevent commands before world/model initialization.
 for(const id of ['hold','resume','rth','manual','pause','preset','edit','undo','save','load'])$(id).disabled=true;
 let cameraOrbit=0,cameraDistance=2.1,dragX=null;
@@ -141,7 +151,7 @@ function animate(now){requestAnimationFrame(animate);const dt=Math.min(.08,(now-
     sim.manual=blendControls(keyboard,padFrame.controls);
     if(sim.mode==='manual'&&padFrame.ready&&padFrame.controls.vertical!==0)sim.stickFlight=true;
     if(padFrame.camera&&!sim.paused&&sim.link>0&&view==='fpv')training.adjustPitch(padFrame.camera*30*dt);
-    for(let i=0;i<(sim.mode==='manual'?1:rate);i++)sim.tick(dt);
+    for(let i=0;i<(sim.mode==='manual'?1:rate);i++)guardedTick(dt);
     const {x,y,z,heading:h}=sim;model.position.set(x,y-.2,z);model.rotation.set(-sim.speed*.007,-h,0);if(sim.armed&&!sim.paused){model.rotation.z=(sim.mode==='manual'?-sim.manualSide*.025:0)-(sim.wind?.speed||0)*.012*Math.sin((sim.wind?.direction||0)*Math.PI/180-h);rotors.forEach((r,i)=>r.rotation.y+=(i%2?1:-1)*dt*80)}
     const fpv=view==='fpv'&&sim.mode!=='ready'&&!(sim.mode==='complete'&&sim.armed);model.visible=!fpv;if(view==='heritage'&&heritageSite){const p=heritageSite;const y=world.getGroundHeight(p.x,p.z)+28;target.set(p.x,y,p.z);eye.set(p.x+Math.sin(cameraOrbit+.65)*heritageDistance,y+heritageDistance*.55,p.z+Math.cos(cameraOrbit+.65)*heritageDistance)}else if(fpv){eye.set(x+Math.sin(h)*.4,y+.3,z-Math.cos(h)*.4);target.set(x+Math.sin(h)*100,y-Math.tan(training.pitch)*100,z-Math.cos(h)*100)}else{const a=h+cameraOrbit+.65;eye.set(x+Math.sin(a)*cameraDistance,y+cameraDistance*.4,z+Math.cos(a)*cameraDistance);target.set(x,y+.1,z)}camera.position.copy(eye);camera.lookAt(target);
     music.updatePosition(sim);pilot.update();weather.update(dt);world.update(dt,camera);training.update(dt);aerialImagery?.update(now,target);harbor.update(sim.paused?0:dt*(sim.mode==='manual'?1:rate),sim.wind);uiAcc+=dt;if(uiAcc>.2){uiAcc=0;updateUI()}
@@ -165,11 +175,11 @@ function updateUI(){if(sim.link>0||!sim.active())lastTelemetry={x:sim.x,z:sim.z,
 async function init(){try{const regionResponse=await fetch(ANK_DATA+'region.json');if(!regionResponse.ok)throw Error('Bölge tanımı '+regionResponse.status);const region=await regionResponse.json();setGeoRegion(region,createUtm(region.crs));home=lonLatToLocal(region.home.lon,region.home.lat);camera.position.set(home.x,180,home.z+150);camera.lookAt(home.x,30,home.z);preset();homeMarker=L.marker(coord(home),{icon:L.divIcon({className:'map-home',html:'⌂',iconSize:[27,27]})}).addTo(map);geofence=L.circle(coord(home),{radius:2000,color:'#749377',weight:1,dashArray:'4 7',fillOpacity:.025}).addTo(map);droneMarker=L.marker(coord(home),{icon:L.divIcon({className:'map-drone',html:'✥',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(map);trailLine=L.polyline([],{color:'#bddc81',weight:3}).addTo(map);
     const modelP=loader.loadGLTF('models/bilsem-surveyor.glb');modelP.catch(()=>{});
     const quality={...QUALITY.low,deviceClass:'tablet',imageryMaxLevel:0,maxImageryTiles:160,maxTerrainTiles:420,cityLodScale:.75,treeDensity:.3,treeDistance:.65,terrainError:1.6,anisotropy:8,water:'medium',textureMaxSize:2048};
-    world=await createAnkaraWorld({scene,renderer,camera,quality,onProgress:(p,t)=>{$('load-progress').value=p;$('load-text').textContent=t}});
+    world=await createAnkaraWorld({scene,renderer,camera,loader,quality,onProgress:(p,t)=>{$('load-progress').value=p;$('load-text').textContent=t}});
     model=(await modelP).scene;model.traverse(o=>{if(o.name.startsWith('Rotor_'))rotors.push(o)});scene.add(model);
     harbor=createLaunchSite({scene,home,world,reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches});
     $('scene').dataset.scenery=JSON.stringify(harbor.counts);
-    sim=new DroneSim(home,(x,z)=>world.getGroundHeight(x,z),(x,y,z)=>!!world.hitTest(x,y,z,.2)||harbor.hitTest(x,y,z,.2),s=>canLandHere(s,world,harbor));
+    sim=new DroneSim(home,(x,z)=>world.getGroundHeight(x,z),(x,y,z)=>{const hit=world.hitTest(x,y,z,.2);if(hit?.type==='landmark'){monumentGuard=hit;return false}return !!hit||harbor.hitTest(x,y,z,.2)},s=>canLandHere(s,world,harbor));
     const pad=new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,.07,48),new THREE.MeshStandardMaterial({color:'#162c39',roughness:.85}));pad.position.set(home.x,sim.y-.4,home.z);scene.add(pad);const ring=new THREE.Mesh(new THREE.TorusGeometry(1.1,.035,8,64),new THREE.MeshBasicMaterial({color:'#51ddc6'}));ring.rotation.x=-Math.PI/2;ring.position.set(home.x,pad.position.y+.05,home.z);scene.add(ring);
     world.setPlayable();addHeritageGround({world,renderer,url:ANK_DATA+'ground.json'}).then(counts=>{$('scene').dataset.ground=JSON.stringify(counts)}).catch(e=>{console.warn('[ground] Ayrıntı katmanı yüklenemedi; mevcut arazi korunuyor.',e.message)});ready=true;$('heritage').disabled=false;for(const id of ['preset','edit','undo','save','load'])$(id).disabled=false;$('loading').hidden=true;$('launch').textContent='▷ Görevi başlat';refreshRoute();updateUI();status('Hazır. Örnek rotayla uçabilir veya haritada kendi rotanı oluşturabilirsin.');
   }catch(e){console.error(e);$('load-text').textContent='Harita yüklenemedi: '+e.message;$('loading').querySelector('h3').textContent='Bağlantıyı kontrol edin';$('loading').querySelector('.spinner').hidden=true;const retry=document.createElement('button');retry.textContent='Yeniden dene';retry.onclick=()=>location.reload();$('loading').append(retry);}}
