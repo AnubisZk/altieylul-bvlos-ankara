@@ -44,3 +44,17 @@ test('Anıtkabir field: square floor is ground, Anıt Blok is an obstacle with a
   // square centre (between the towers, OSM): walkable floor
   const sq={x:-90,z:70};assert.equal(f.heightAt(sq.x,sq.z),-Infinity);assert.ok(Math.abs(f.groundAt(sq.x,sq.z)-data.floorY)<3);
 });
+
+import {createRoadField} from '../drone/aslanli-yol.js';
+test('Aslanlı Yol layout: 262.20 m × 12.80 m, OSM axis, joins the Tören Meydanı floor',()=>{
+  const lay=JSON.parse(fs.readFileSync('data/ank/aslanli-yol.json','utf8'));
+  assert.equal(lay.length,262.2);assert.equal(lay.walkWidth,12.8);
+  assert.ok(Math.abs(Math.hypot(...lay.dir)-1)<1e-5);
+  const f=createRoadField(lay),[ax,az]=lay.start,[ux,uz]=lay.dir;
+  const at=(s,t)=>[ax+ux*s-uz*t,az+uz*s+ux*t];
+  assert.ok(Math.abs(f.groundAt(...at(0,0))-lay.y0)<1e-6);
+  assert.ok(Math.abs(f.groundAt(...at(lay.length-0.01,0))-lay.y1)<1e-3,'road ends at the square floor');
+  assert.ok(f.groundAt(...at(-15,0))<lay.y0,'start stairs below the road');
+  assert.equal(f.groundAt(...at(100,40)),null);
+  const {s,t}=f.frame(...at(123.4,-5.6));assert.ok(Math.abs(s-123.4)<1e-3&&Math.abs(t+5.6)<1e-3);
+});

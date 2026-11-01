@@ -1,0 +1,94 @@
+{
+ "source": "OSM way 267161017/397748869/397833618…636/267161019, GLO-30; uzunluk ve genişlik Zafer Hoca",
+ "start": [
+  -284.86,
+  -176.31
+ ],
+ "dir": [
+  0.61161,
+  0.79116
+ ],
+ "rotationY": -0.912703,
+ "length": 262.2,
+ "walkWidth": 12.8,
+ "osmLength": 258.3,
+ "y0": 901.57,
+ "y1": 902.7,
+ "stairs": {
+  "from": -15.5,
+  "to": 0,
+  "halfWidth": 25,
+  "steps": 6,
+  "base": 900.57
+ },
+ "strips": {
+  "count": 7,
+  "first": [
+   14.5,
+   41.5
+  ],
+  "last": [
+   230.2,
+   258.4
+  ],
+  "lateral": [
+   6.4,
+   9.5
+  ]
+ },
+ "paved": {
+  "halfWidth": 14.7
+ },
+ "towers": [
+  {
+   "name": "Hürriyet Kulesi",
+   "along": [
+    0,
+    14
+   ],
+   "lateral": [
+    -25.7,
+    -12.8
+   ]
+  },
+  {
+   "name": "İstiklal Kulesi",
+   "along": [
+    0,
+    14
+   ],
+   "lateral": [
+    12.8,
+    27
+   ]
+  }
+ ],
+ "lod": {
+  "near": 0,
+  "mid": 320,
+  "far": 1100
+ },
+ "files": {
+  "high": "models/aslanli-yol/aslanli_yol_high.glb",
+  "low": "models/aslanli-yol/aslanli_yol_low.glb",
+  "colliders": "models/aslanli-yol/aslanli_yol_colliders.glb"
+ },
+ "footprint": [
+  [
+   -272.49,
+   -206.09
+  ],
+  [
+   -102.34,
+   14.01
+  ],
+  [
+   -146.65,
+   48.26
+  ],
+  [
+   -316.8,
+   -171.84
+  ]
+ ]
+}

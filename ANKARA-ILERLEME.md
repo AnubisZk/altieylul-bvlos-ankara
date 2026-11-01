@@ -106,6 +106,29 @@ Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okun
 - Blender'ı yeniden çalıştırma: `blender -b -P tools/blender/turk_bayragi.py -- --out models --wind-speed 8`
   (ayarlar: --width, --pole-height, --wind-dir, --frames, --keys, --nx, --ny, --texture, --anitkabir).
 
+## Aslanlı Yol (1 Kasım)
+
+- Kaynak: `tools/blender/aslanli_yol.py` (Blender 4.2 bpy ile çalıştırıldı) + `tools/ankara/prepare-aslanli-yol.mjs`
+  (OSM ekseni ve GLO-30 → `data/ank/aslanli-yol.json`). Aslan heykeli: Zafer Hoca'nın Meshy modeli
+  (`Meshy_AI_Stone_Guardian_of_Daw_…glb`, 500 bin üçgen, 8K; repoda yok, betik `--lion` ile okur).
+- Çıktılar `models/aslanli-yol/`: `aslanli_yol_master.blend` (19 MB; 8K kaynak aslan çıkarılmış),
+  `aslanli_yol_high.glb` (2.2 MB, ~190 bin üçgen), `aslanli_yol_low.glb` (0.4 MB, ~33 bin), `aslanli_yol_colliders.glb`
+  (185 kutu), `rapor.json`, `kontrol/*.jpg` (üstten, yandan, drone yüksekliği, aslan yakın).
+- Ölçü: 262.20 m × 12.80 m (OSM ekseni 258.3 m; başlangıç OSM merdiven üstü, bitiş Tören Meydanı zemini 902.7 m).
+  Yerel +X yol yönü (kerteriz 142.3°), kök düğüm yol başında; GLB doğrudan simülatör yerel metre koordinatında.
+- 24 aslan: 7'şer çim şerit (OSM) arasındaki 6 boşlukta her yanda ikişer; bağlı kopya + EXT_mesh_gpu_instancing.
+  Aslan 2.6 × 1.34 × 1.31 m (yaklaşık), 0.45 m kaide; yüzleri Tören Meydanı'na dönük, iki yan simetrik.
+  Yakın 6000, orta 900 üçgen; doku 2048 / 512.
+- Traverten zemin: numpy ile üretilmiş 4.8 m döşenen doku (levha derzleri, gözenek, damar) + normal haritası, pürüz 0.74.
+- 151 ardıç (4 biçim, düzensiz kümeli sütun formu, köşe renkli), çiçek tarhları, yan çimler, 46 ziyaretçi (6 tip, 1.55–1.85 m).
+- Başlangıç: 6 basamak (~1 m), 50 m genişlik; Hürriyet ve İstiklal kuleleri temsili kütle; heykel grupları için yalnız
+  kaide var (kadın/erkek heykel grubu modelleri yok, ayrı model gerekir).
+- Oyunda (`drone/aslanli-yol.js`): THREE.LOD yakın < 320 m < orta < 1100 m < uzak (orta sürüm, aslansız). Zemin yol
+  yüzeyine oturur; çarpışma kutu tabanlı, anıt gibi "durdur ve uyar" (koruma payı 2.5 m). Yol ayak izindeki OSM binaları
+  gösterilmiyor. Anıt Blok, meydan ve bayrak dosyalarına dokunulmadı.
+- Yeniden üretim: `node tools/ankara/prepare-aslanli-yol.mjs --osm <osm.json>` sonra
+  `blender -b -P tools/blender/aslanli_yol.py -- --lion <aslan.glb> --out models/aslanli-yol`.
+
 ## Sıradaki adımlar
 
 1. ~~OSM ile konum düzeltme~~ (yapıldı). Veri yenilenirse:

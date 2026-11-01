@@ -14,6 +14,7 @@ import {createEnvironment} from '../src/world-sf/environment.js';
 import {searchAreas} from './search-site.js';
 import {pointInRing,distanceToRing} from './area.js';
 import {createAnitkabirLayer,createMonumentField} from './anitkabir.js';
+import {createAslanliYolLayer,createRoadField} from './aslanli-yol.js';
 
 export const ANK_DATA='data/ank/';
 
@@ -123,16 +124,17 @@ export async function createAnkaraWorld({scene,renderer,camera,loader=null,quali
   onProgress(.15,'Gökyüzü ve ışık');
   const environment=await createEnvironment({scene,renderer,camera,map:{id:'ank',fogBank:false},quality});
   onProgress(.35,'Arazi');
-  const [grid,buildingData,landmarkData,groundData,monumentData]=await Promise.all([
+  const [grid,buildingData,landmarkData,groundData,monumentData,roadData]=await Promise.all([
     json(ANK_DATA+'terrain.json',true),json(ANK_DATA+'buildings.json',true),json(ANK_DATA+'landmarks.json',true),
-    json(ANK_DATA+'ground.json',true),json(ANK_DATA+'anitkabir.json',true),
+    json(ANK_DATA+'ground.json',true),json(ANK_DATA+'anitkabir.json',true),json(ANK_DATA+'aslanli-yol.json',true),
   ]);
   const fallback=region.fallbackElevation??880;
   const terrainHeight=heightSampler(grid,fallback);
   // inside the Anıtkabir footprint the ground is the model's square floor (terrain flattened under the monument)
   const monument=monumentData&&loader?createMonumentField(monumentData):null;
-  const ground=monument?(x,z)=>monument.groundAt(x,z)??terrainHeight(x,z):terrainHeight;
-  const sources={monument:monument?'Meshy (temsili)':'yok',terrain:grid?grid.source||'GLO-30':'geçici düz zemin',buildings:buildingData?buildingData.source||'OSM':'yok',landmarks:landmarkData?'veri':'varsayılan'};
+  const road=roadData&&loader?createRoadField(roadData):null;
+  const ground=(x,z)=>monument?.groundAt(x,z)??road?.groundAt(x,z)??terrainHeight(x,z);
+  const sources={aslanliYol:road?'Blender (aslanli_yol.py)':'yok',monument:monument?'Meshy (temsili)':'yok',terrain:grid?grid.source||'GLO-30':'geçici düz zemin',buildings:buildingData?buildingData.source||'OSM':'yok',landmarks:landmarkData?'veri':'varsayılan'};
 
   const shared={
     uGroundTex:{value:null},uGroundXform:{value:new T.Vector4()},uGroundEnabled:{value:0},
@@ -143,7 +145,8 @@ export async function createAnkaraWorld({scene,renderer,camera,loader=null,quali
   const geo=new T.PlaneGeometry(b.maxX-b.minX,b.maxZ-b.minZ,cols,rows);geo.rotateX(-Math.PI/2);
   geo.translate((b.minX+b.maxX)/2,0,(b.minZ+b.maxZ)/2);
   // visual terrain sinks 2 m under the monument's square floor (no z-fighting with the model); physics uses `ground`
-  const visual=monument?(x,z)=>monument.inside(x,z)?monument.floorY-2:terrainHeight(x,z):ground;
+  // under the Aslanlı Yol model the terrain sits 1 m below the paving / lawns
+  const visual=(x,z)=>{if(monument?.inside(x,z))return monument.floorY-2;const r=road?.groundAt(x,z);return r!=null?Math.min(r-1,terrainHeight(x,z)):terrainHeight(x,z)};
   const p=geo.attributes.position;for(let i=0;i<p.count;i++)p.setY(i,visual(p.getX(i),p.getZ(i)));
   geo.computeVertexNormals();
   const terrainMesh=new T.Mesh(geo,terrainMaterial(shared));terrainMesh.receiveShadow=true;terrainMesh.name='ank-terrain';
@@ -153,7 +156,8 @@ export async function createAnkaraWorld({scene,renderer,camera,loader=null,quali
 
   onProgress(.6,'Binalar');
   // OSM footprints the monument model replaces (Türbe, museum, colonnades) are left out
-  const osmBuildings=(buildingData?.buildings||[]).filter(b=>!monument||!b.ring.some(([x,z])=>monument.inside(x,z)));
+  const replaced=(x,z)=>monument?.inside(x,z)||road?.inside(x,z);
+  const osmBuildings=(buildingData?.buildings||[]).filter(b=>!b.ring.some(([x,z])=>replaced(x,z)));
   const obstacles=createObstacleIndex(osmBuildings,terrainHeight);
   const bm=buildingMesh(obstacles);if(bm)object.add(bm);
   const layers=[];
@@ -161,6 +165,11 @@ export async function createAnkaraWorld({scene,renderer,camera,loader=null,quali
     onProgress(.75,'Anıtkabir modeli');
     try{const layer=await createAnitkabirLayer({loader,data:monumentData,renderer});layers.push(layer);object.add(layer.object)}
     catch(e){console.warn('[anitkabir] model yüklenemedi; OSM zemini korunuyor',e.message);sources.monument='yüklenemedi'}
+  }
+  if(road){
+    onProgress(.85,'Aslanlı Yol');
+    try{const layer=await createAslanliYolLayer({loader,data:roadData,renderer});layers.push(layer);object.add(layer.object);sources.aslanliYolColliders=layer.stats.colliders}
+    catch(e){console.warn('[aslanli-yol] model yüklenemedi',e.message);sources.aslanliYol='yüklenemedi'}
   }
 
   const raw=landmarkData?.landmarks||[{id:'anit-blok',name:'Anıtkabir · Anıt Blok',lon:region.origin.lon,lat:region.origin.lat}];

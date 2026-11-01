@@ -5,3 +5,4 @@ imagery.local.json
 .env.*.local
 data/ank/report.txt
 .DS_Store
+*.blend1
