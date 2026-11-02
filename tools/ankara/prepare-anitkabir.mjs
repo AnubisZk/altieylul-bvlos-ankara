@@ -124,6 +124,10 @@ const data={
   // bayrak: Zafer Hoca'nın işaretlediği yer — Aslanlı Yol girişinin tam karşısındaki revak boşluğu (Meshy modelinde
   // a = −128…−101 arası açıklık, revak hattı p ≈ +48); taban Meshy zemininde (floorY + 0.5)
   flag:{model:'models/turk-bayragi.glb',height:24,base:+(floorY+0.5).toFixed(2),pole:[+(-104*c+47*s).toFixed(1),+(104*s+47*c).toFixed(1)],note:'Bayrak direği konumu temsili; gerekirse düzenleyin (yerel metre).'},
+  // ek modeller (Zafer Hoca'nın Meshy modelleri, tools/ankara/prepare-heykel.mjs ile): eksen koordinatı a/p, uzun kenar
+  // `length` metreye ölçeklenir, ön yüz (`face`, varsayılan +Z) Anıt Blok'a (+a) döner
+  props:[{id:'inonu-lahdi',name:'İsmet İnönü Lahdi',model:'models/inonu-lahdi.glb',a:-171.9,p:-3.7,length:4.2,face:'+x',plinth:{w:5.6,d:8.0,h:0.18},
+    note:'OSM node 2726254470 konumu; meydanın Anıt Blok karşısındaki revak ortası. Kitabeli üçgen alınlık (+X) Anıt Blok yönüne bakar. Ölçü fotoğraftan yaklaşık.'}],
 };
 fs.writeFileSync(OUT_DATA,JSON.stringify(data));
 const ok=heights.filter(h=>h!==null).length;

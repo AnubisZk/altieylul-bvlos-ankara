@@ -167,7 +167,16 @@ Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okun
   oranlar kare (41.65 × 57.35 değil) olduğu için kullanılmadı; kaynak dosya repoda yok.
 - Önizleme: `python tools/blender/rolyef.py --preview out.png` (numpy + Pillow).
 
-## Heykel grupları (yer hazır, model bekleniyor)
+## Heykel grupları ve İnönü Lahdi modelleri eklendi (3 Kasım)
+
+- Zafer Hoca'nın Meshy modelleri: "Guardians of the Republic" → `models/heykel-erkek.glb` (Hürriyet Kulesi önü),
+  "Silent Sisters of Stone" → `models/heykel-kadin.glb` (İstiklal Kulesi önü); `prepare-heykel.mjs --tris 24000`.
+- "İnönü's Silent Memorial" → `models/inonu-lahdi.glb`; `anitkabir.json → props` (OSM node 2726254470, a −171.9,
+  p −3.7), 4.2 m, kitabeli alınlık (+X) Anıt Blok'a bakar, granit taban + kutu çarpışması. Yapı inceleme listesindeki
+  "İsmet İnönü Lahdi" yakın kamerayla açılır (`mission.js`: distance 38, lookHeight 2).
+- Ham Meshy dosyaları repoda yok (her biri ~60 MB).
+
+## Heykel grupları (önceki not)
 
 - Erkek grubu Hürriyet Kulesi önünde (t = −9.4), kadın grubu İstiklal Kulesi önünde (t = +9.4), s = 6 m kaideler.
   `data/ank/aslanli-yol.json → statues`. Oyun `models/heykel-erkek.glb` ve `models/heykel-kadin.glb` dosyalarını

@@ -10,6 +10,6 @@ export const HERITAGE = [
   {id:'anit-blok',name:'Anıtkabir · Anıt Blok',distance:230},
   {id:'aslanli-yol',name:'Aslanlı Yol',distance:300},
   {id:'istiklal-hurriyet',name:'İstiklal ve Hürriyet kuleleri',distance:160},
-  {id:'inonu-lahdi',name:'İsmet İnönü Lahdi',distance:150},
+  {id:'inonu-lahdi',name:'İsmet İnönü Lahdi',distance:38,lookHeight:2},
   {id:'baris-parki',name:'Anıtkabir · Barış Parkı',distance:650},
 ];

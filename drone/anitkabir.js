@@ -65,6 +65,25 @@ export async function createAnitkabirLayer({loader,data,renderer}){
     const drop=[];c.scene.traverse(o=>{if(/^COL_(Kaide|Merdiven)/.test(o.name))drop.push(o)});drop.forEach(o=>o.removeFromParent());
     blockColliders=createBoxColliders(c.scene);
   }
+  // Ek modeller (İnönü Lahdi vb.): eksen koordinatında yerleşir, uzun kenar `length` m, ön yüz Anıt Blok'a döner;
+  // taş kaide + kutu çarpışması. Dosya yoksa atlanır.
+  const propBoxes=[];
+  for(const pr of data.props||[]){
+    try{
+      const g=await loader.loadGLTF(pr.model),obj=g.scene;obj.updateMatrixWorld(true);
+      const box=new T.Box3().setFromObject(obj),size=box.getSize(new T.Vector3()),k=pr.length/Math.max(size.x,size.z,1e-6);
+      const [c,sn]=data.anitBlok?.axis||[1,0],x=pr.a*c-pr.p*sn,z=pr.a*sn+pr.p*c;
+      const base=field.groundAt(x,z)??data.floorY,ph=pr.plinth?.h||0;
+      const holder=new T.Group();holder.name='prop-'+pr.id;holder.position.set(x,base,z);holder.rotation.y=Math.atan2(c,sn)-(pr.face==='+x'?Math.PI/2:0);
+      if(pr.plinth){const m=new T.Mesh(new T.BoxGeometry(pr.plinth.w,ph,pr.plinth.d),new T.MeshStandardMaterial({color:0x8a8178,roughness:.45}));m.position.y=ph/2;m.castShadow=m.receiveShadow=true;holder.add(m)}
+      const inner=new T.Group();inner.scale.setScalar(k);inner.position.y=ph;obj.position.set(-(box.min.x+box.max.x)/2,-box.min.y,-(box.min.z+box.max.z)/2);inner.add(obj);holder.add(inner);
+      obj.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;if(o.material)o.material.metalness=0}});
+      root.add(holder);
+      const cm=new T.Mesh(new T.BoxGeometry(size.x*k,ph+size.y*k,size.z*k));cm.name='COL_'+pr.id;cm.position.set(x,base+(ph+size.y*k)/2,z);cm.rotation.y=holder.rotation.y;
+      const gg=new T.Group();gg.add(cm);propBoxes.push(...createBoxColliders(gg).boxes);
+    }catch(e){if(!(e&&(e.status===404||/404/.test(e.message||''))))console.warn('[anitkabir] model yüklenemedi',pr.id,e?.message)}
+  }
+  if(propBoxes.length){if(blockColliders)blockColliders.boxes.push(...propBoxes);else blockColliders=createBoxColliders(new T.Group()),blockColliders.boxes.push(...propBoxes)}
   // Türk bayrağı (tools/blender/turk_bayragi.py → models/turk-bayragi.glb): morph target döngüsü, rüzgâra bağlı
   let mixer=null,flag=null,wind={speed:6,direction:270};
   if(data.flag?.model){
@@ -80,7 +99,7 @@ export async function createAnitkabirLayer({loader,data,renderer}){
   const poleHit=(x,y,z,r=0)=>pole&&y<=poleTop+GUARD_MARGIN&&Math.hypot(x-pole[0],z-pole[1])<=0.3+r+GUARD_MARGIN?{type:'landmark',id:'anitkabir-bayrak',name:'Bayrak direği'}:null;
   const fieldHeight=(x,z)=>Math.max(field.heightAt(x,z),blockColliders?blockColliders.heightAt(x,z):-Infinity);
   return {object:root,field,heightAt:(x,z)=>pole&&Math.hypot(x-pole[0],z-pole[1])<=0.3?Math.max(poleTop,fieldHeight(x,z)):fieldHeight(x,z),
-    hitTest:(x,y,z,r)=>poleHit(x,y,z,r)||(blockColliders?.hitTest(x,y,z,r)&&{type:'landmark',id:'anitkabir',name:'Anıt Blok'})||field.hitTest(x,y,z,r),
+    hitTest:(x,y,z,r)=>poleHit(x,y,z,r)||(h=>h&&{type:'landmark',id:'anitkabir',name:/inonu/.test(h.name)?'İsmet İnönü Lahdi':'Anıt Blok'})(blockColliders?.hitTest(x,y,z,r))||field.hitTest(x,y,z,r),
     /** sim.wind: {speed m/s, direction = rüzgârın geldiği yön (derece, kuzeyden saat yönü)} */
     setWind(w){if(w)wind=w},
     update(dt){
