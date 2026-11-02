@@ -6,11 +6,14 @@
 # meydan zemini üstüne cilalı traverten levha zemin serilir. Revaklar ve kuleler Meshy modelinde kalır.
 #
 # Ölçüler ve kaynakları:
-#   - Peristil 8 × 14 kare kesitli pilon, dış ölçü 41.65 × 57.35 m; meydana bakan kısa cephe (OSM Türbe poligonu
+#   - Peristil 10 × 14 = 44 pilon (köşeler geniş; ön cephe fotoğrafında 10 pilon / 9 aks), dış ölçü 41.65 × 57.35 m; meydana bakan kısa cephe (OSM Türbe poligonu
 #     51.0 × 61.9 m, basamak sahanlığıyla; Meshy modeli ve referans fotoğrafla tutarlı)
-#   - Pilon kesiti 1.4 × 1.3 m, pilon yüksekliği ~16 m, çerçeve aralığı 5.5 m (ODTÜ yapısal değerlendirme makalesi)
+#   - Pilon yüksekliği 14.4 m, yapı ~17 m (Anıtkabir verisi); pilon kesiti ~1.4 × 1.5 m (fotoğraf oranı)
 #   - Tören Meydanı 129 × 84 m (Anıtkabir proje bilgisi); OSM'deki 8 kule meydan eksenini ve genişliğini doğruluyor
-#   - Kaide yüksekliği ve basamak sayısı yaklaşık (fotoğraftan): 6.4 m, 36 basamak
+#   - Kaide yüksekliği ve basamak sayısı yaklaşık (fotoğraftan): 6.4 m, 42 basamak; merdiven ortasında Hitabet kürsüsü
+#   - Merdivenin iki yanında meydana bakan rölyefli teras duvarları ve üstlerinde ateş kaseleri (her yanda 5);
+#     rölyef dokusu tools/blender/rolyef.py ile üretilen özgün kompozisyondur (gerçek eserlerin kopyası değildir)
+#   - Ön cephede orta üç aks giriş girintisi + bronz ızgaralı kapı, 2–3. ve 7–8. akslarda yazıt panelleri (soyut)
 # Koordinat: kök "AnitBlok" Anıt Blok merkezinde, meydan zemini yüksekliğinde; yerel +X = meydandan Anıt Blok'a eksen,
 # yerel −Y = enine p (oyun işareti). data/ank/anitkabir.json içindeki floorY ve rotationY ile hizalanır.
 import bpy, bmesh, math, os, sys, json, argparse
@@ -28,12 +31,17 @@ A = parse_args()
 MON = json.load(open(A.monument, encoding='utf-8'))
 
 FRONT_W, DEPTH = 41.65, 57.35          # peristil dış ölçüsü (enine × eksen boyunca)
-PIL = (1.30, 1.40)                     # pilon kesiti (eksen boyunca × enine)
-PIL_H = 16.0
-NF, NS = 8, 14                         # kısa (ön/arka) ve uzun (yan) cephe pilon sayısı
-PODIUM_H, STEPS = 6.4, 36
+NF, NS = 10, 14                        # ön/arka ve yan cephe pilon sayısı (köşeler dahil) → toplam 44 pilon
+PIL = (1.40, 1.50)                     # ara pilon kesiti (derinlik × cephe genişliği)
+PIL_C = 2.2                            # köşe pilonu (fotoğrafta ara pilonların ~1.5 katı)
+PIL_H = 14.4                           # pilon yüksekliği; yapı ~17 m (Wikipedia/Anıtkabir)
+PODIUM_H, STEPS = 6.4, 42
 PODIUM_PAD = 5.3                       # kaide, peristilden taşma (Meshy kesimini örter)
-ENT_H, CORNICE = 4.6, 0.75             # saçak kuşağı ve taşma
+ENT_H, CORNICE = 2.3, 0.7              # saçak kuşağı yüksekliği ve korniş taşması
+STAIR_FOOT = -46.94                    # merdiven ayağı = rölyef duvarlarının ön yüzü (meydan sınırı)
+STAIR_HW = 22.4                        # merdiven yarı genişliği (fotoğraf: peristilden biraz geniş)
+TERR_P, TERR_BACK = 42.0, -20.0        # rölyefli teras: merdiven yanından revak uçlarına (±42 m), arkaya −20 m
+CELLA_REC, CELLA_IP = 5.0, 14.4        # orta üç aksın giriş girintisi, iç kütle yarı genişliği
 SQUARE = {'a0': -180.0, 'a1': -46.0, 'p': 42.0}   # Tören Meydanı (eksen boyunca a, enine ±p), yerel metre
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -101,6 +109,8 @@ M = {
     'dark': pbr('Ic_Golge', None, None, 0.85, (0.05, 0.045, 0.04)),  # sütunlar arası derin revak ve camlar
     'glass': pbr('Vitray', None, None, 0.55, (0.035, 0.038, 0.042)),
     'roof': pbr('Cati_Kursun', None, None, 0.6, (0.44, 0.47, 0.48)),
+    'bronze': pbr('Bronz_Kase', None, None, 0.5, (0.16, 0.12, 0.08)),
+    'marble': pbr('Beyaz_Mermer', None, None, 0.35, (0.90, 0.89, 0.86)),
     'col': pbr('Carpisma', None, None, 1.0, (1, 0, 1)),
 }
 TILE_STONE, TILE_FLOOR = 6.0, 10.0          # doku tekrarının gerçek boyu (m)
@@ -120,71 +130,168 @@ def box(bm, a0, a1, p0, p1, z0, z1, mat):
     for f in {f for v in vs for f in v.link_faces}: f.material_index = mat
     return vs
 
-MI = {'stone': 0, 'dark': 1, 'glass': 2, 'roof': 3}
+MI = {'stone': 0, 'dark': 1, 'glass': 2, 'roof': 3, 'bronze': 4, 'marble': 5}
 bm = bmesh.new()
 hw, hd = FRONT_W / 2, DEPTH / 2
 P0 = PODIUM_H
-# kaide (iki kademeli) ve yan duvarlar
+front = -hd - PODIUM_PAD
+run = (front - STAIR_FOOT) / STEPS
+# kaide (iki kademeli)
 box(bm, -hd - PODIUM_PAD, hd + PODIUM_PAD, -hw - PODIUM_PAD, hw + PODIUM_PAD, -1.5, P0 - 1.2, MI['stone'])
 box(bm, -hd - PODIUM_PAD + 0.6, hd + PODIUM_PAD - 0.6, -hw - PODIUM_PAD + 0.6, hw + PODIUM_PAD - 0.6, P0 - 1.2, P0, MI['stone'])
-# büyük merdiven: ön cephenin tamamı boyunca, meydana iner
-run = 0.36; front = -hd - PODIUM_PAD
+# büyük merdiven: iki rölyef duvarının arasında, meydandan kaideye
 for k in range(STEPS):
     top = P0 * (STEPS - k) / STEPS
-    box(bm, front - (k + 1) * run, front - k * run + 0.02, -hw - 2.0, hw + 2.0, -0.5, top, MI['stone'])
-# merdiven yan duvarları (rölyef panellerinin yeri)
+    box(bm, front - (k + 1) * run, front - k * run + 0.02, -STAIR_HW, STAIR_HW, -0.5, top, MI['stone'])
+# Hitabet kürsüsü: merdivenin alt üçte birinde beyaz mermer blok
+KK = 27; ka = front - (KK + 0.5) * run; kz = P0 * (STEPS - KK) / STEPS
+box(bm, ka - 0.5, ka + 0.5, -2.7, 2.7, kz - 0.4, kz + 1.05, MI['marble'])
+# rölyefli teraslar (merdivenin iki yanı) — ön yüzde rölyef paneli, üstte ateş kaseleri
+BOWLS = []
 for s in (-1, 1):
-    pa, pb = sorted((s * (hw + 2.0), s * (hw + 4.6)))
-    box(bm, front - STEPS * run, front, pa, pb, -0.5, P0 * 0.55, MI['stone'])
-# peristil pilonları
-def pillar_line(n, a_fixed=None, p_fixed=None, skip_ends=False):
-    for i in range(1 if skip_ends else 0, n - 1 if skip_ends else n):   # köşe pilonları yalnız ön/arka sırada (çakışma yok)
-        if a_fixed is not None:
-            p = -hw + PIL[1] / 2 + i * (FRONT_W - PIL[1]) / (n - 1); a = a_fixed
-        else:
-            a = -hd + PIL[0] / 2 + i * (DEPTH - PIL[0]) / (n - 1); p = p_fixed
-        box(bm, a - PIL[0] / 2, a + PIL[0] / 2, p - PIL[1] / 2, p + PIL[1] / 2, P0, P0 + PIL_H, MI['stone'])
-        box(bm, a - PIL[0] / 2 - 0.12, a + PIL[0] / 2 + 0.12, p - PIL[1] / 2 - 0.12, p + PIL[1] / 2 + 0.12, P0, P0 + 0.5, MI['stone'])   # pilon tabanı
-pillar_line(NF, a_fixed=-hd + PIL[0] / 2); pillar_line(NF, a_fixed=hd - PIL[0] / 2)
-pillar_line(NS, p_fixed=-hw + PIL[1] / 2, skip_ends=True); pillar_line(NS, p_fixed=hw - PIL[1] / 2, skip_ends=True)
-# iç kütle (Şeref Holü duvarları): önde derin revak (koyu), yanlarda dar galeri, pencere bantları
-ia0, ia1, ip = -hd + 7.5, hd - 3.2, hw - 3.4
-box(bm, ia0, ia1, -ip, ip, P0, P0 + PIL_H, MI['stone'])
-box(bm, ia0 - 0.05, ia0 + 0.2, -ip + 2.2, ip - 2.2, P0 + 1.0, P0 + PIL_H - 0.6, MI['glass'])      # ön cam/vitray yüzeyi
+    pa, pb = sorted((s * STAIR_HW, s * TERR_P))
+    box(bm, STAIR_FOOT, TERR_BACK, pa, pb, -1.5, P0, MI['stone'])
+    box(bm, STAIR_FOOT - 0.35, STAIR_FOOT + 0.9, pa - (0.3 if s < 0 else 0), pb + (0.3 if s > 0 else 0), P0 - 0.05, P0 + 0.30, MI['stone'])   # harpuşta
+    box(bm, STAIR_FOOT - 0.30, STAIR_FOOT + 0.5, pa, pb, -0.5, 0.55, MI['stone'])                     # alt silme
+    for k in range(5):                                                                                    # ateş kaseleri
+        p = s * (STAIR_HW + 2.6 + k * (TERR_P - STAIR_HW - 5.2) / 4); a = STAIR_FOOT + 2.6
+        box(bm, a - 0.45, a + 0.45, p - 0.45, p + 0.45, P0, P0 + 0.85, MI['stone'])
+        r = bmesh.ops.create_cone(bm, cap_ends=True, segments=20, radius1=0.25, radius2=0.85, depth=0.45)
+        bmesh.ops.translate(bm, verts=r['verts'], vec=L(a, p, P0 + 0.85 + 0.225))
+        for f in {f for v in r['verts'] for f in v.link_faces}: f.material_index = MI['bronze']
+        BOWLS.append((a, p))
+# peristil pilonları: 10 × 14, köşelerde geniş pilon
+def pil(a, p, da, dp):
+    box(bm, a - da / 2, a + da / 2, p - dp / 2, p + dp / 2, P0, P0 + PIL_H, MI['stone'])
+    box(bm, a - da / 2 - 0.12, a + da / 2 + 0.12, p - dp / 2 - 0.12, p + dp / 2 + 0.12, P0, P0 + 0.45, MI['stone'])
+PF = [-hw + PIL_C / 2 + i * (FRONT_W - PIL_C) / (NF - 1) for i in range(NF)]
+PS = [-hd + PIL_C / 2 + j * (DEPTH - PIL_C) / (NS - 1) for j in range(NS)]
+for sa in (-1, 1):
+    for sp in (-1, 1): pil(sa * (hd - PIL_C / 2), sp * (hw - PIL_C / 2), PIL_C, PIL_C)
+    for p in PF[1:-1]: pil(sa * (hd - PIL[0] / 2), p, PIL[0], PIL[1])
+for sp in (-1, 1):
+    for a in PS[1:-1]: pil(a, sp * (hw - PIL[0] / 2), PIL[1], PIL[0])
+# iç kütle (Şeref Holü): ön cephede orta üç aksta derin giriş girintisi; dış akslardan yan galeri görünür
+ia0, ia1, ip = -hd + 6.6, hd - 4.6, CELLA_IP
+pr = PF[6]                                  # girinti kenarı = 4. ve 7. pilon ekseni
+box(bm, ia0 + CELLA_REC, ia1, -ip, ip, P0, P0 + PIL_H, MI['stone'])
+for s in (-1, 1):
+    pa, pb = sorted((s * pr, s * ip)); box(bm, ia0, ia0 + CELLA_REC, pa, pb, P0, P0 + PIL_H, MI['stone'])
+    pa, pb = sorted((s * pr, s * (pr - 0.06))); box(bm, ia0 + 0.05, ia0 + CELLA_REC, pa, pb, P0, P0 + PIL_H, MI['dark'])  # girinti yan yüzleri (gölgede)
+box(bm, ia0 + CELLA_REC - 0.06, ia0 + CELLA_REC, -pr, pr, P0, P0 + PIL_H, MI['dark'])                                      # girinti arka duvarı
+box(bm, ia0, ia0 + CELLA_REC, -pr, pr, P0 + PIL_H - 0.6, P0 + PIL_H, MI['dark'])                                          # girinti tavanı
 for s in (-1, 1):                                                                                  # yan pencere bantları
     for k in range(6):
-        a = ia0 + 4.0 + k * (ia1 - ia0 - 8.0) / 5
-        box(bm, a - 1.2, a + 1.2, s * ip - 0.15, s * ip + 0.15, P0 + 9.0, P0 + 14.5, MI['glass'])
-box(bm, -hd + 1.4, ia0, -hw + 1.4, hw - 1.4, P0 + PIL_H - 0.02, P0 + PIL_H, MI['dark'])          # revak tavanı (gölge)
-# saçak kuşağı (arşitrav + friz), korniş, çatı katı ve kurşun çatı
-box(bm, -hd, hd, -hw, hw, P0 + PIL_H, P0 + PIL_H + ENT_H, MI['stone'])
-box(bm, -hd - CORNICE, hd + CORNICE, -hw - CORNICE, hw + CORNICE, P0 + PIL_H + ENT_H, P0 + PIL_H + ENT_H + 0.7, MI['stone'])
-box(bm, -hd + 0.4, hd - 0.4, -hw + 0.4, hw - 0.4, P0 + PIL_H + ENT_H + 0.7, P0 + PIL_H + ENT_H + 1.6, MI['stone'])
-ztop = P0 + PIL_H + ENT_H + 1.6
+        a = ia0 + 6.0 + k * (ia1 - ia0 - 10.0) / 5
+        box(bm, a - 1.1, a + 1.1, s * ip - 0.12, s * ip + 0.12, P0 + 8.5, P0 + 13.6, MI['glass'])
+box(bm, -hd + 1.0, hd - 1.0, -hw + 1.0, hw - 1.0, P0 + PIL_H - 0.03, P0 + PIL_H, MI['dark'])        # revak tavanı (gölge)
+# saçak kuşağı (arşitrav + friz), diş sırası, korniş, parapet ve alçak kurşun çatı
+zE = P0 + PIL_H
+box(bm, -hd, hd, -hw, hw, zE, zE + ENT_H, MI['stone'])
+for z in (zE + 0.75, zE + ENT_H - 0.75):
+    box(bm, -hd - 0.10, hd + 0.10, -hw - 0.10, hw + 0.10, z, z + 0.16, MI['stone'])
+nd_f, nd_s = int(FRONT_W / 0.62), int(DEPTH / 0.62)
+for i in range(nd_f):                                                                              # diş sırası (dentil)
+    p = -hw + 0.31 + i * (FRONT_W - 0.62) / (nd_f - 1)
+    for sa in (-1, 1): box(bm, sa * hd - 0.22, sa * hd + 0.22, p - 0.16, p + 0.16, zE + ENT_H - 0.45, zE + ENT_H, MI['stone'])
+for j in range(nd_s):
+    a = -hd + 0.31 + j * (DEPTH - 0.62) / (nd_s - 1)
+    for sp in (-1, 1): box(bm, a - 0.16, a + 0.16, sp * hw - 0.22, sp * hw + 0.22, zE + ENT_H - 0.45, zE + ENT_H, MI['stone'])
+box(bm, -hd - CORNICE, hd + CORNICE, -hw - CORNICE, hw + CORNICE, zE + ENT_H, zE + ENT_H + 0.55, MI['stone'])
+box(bm, -hd + 0.2, hd - 0.2, -hw + 0.2, hw - 0.2, zE + ENT_H + 0.55, zE + ENT_H + 1.05, MI['stone'])
+ztop = zE + ENT_H + 1.05
 r = bmesh.ops.create_cone(bm, cap_ends=True, segments=4, radius1=1.0, radius2=0.0, depth=1.0)
 bmesh.ops.rotate(bm, verts=r['verts'], cent=(0, 0, 0), matrix=Matrix.Rotation(math.pi / 4, 3, 'Z'))
-bmesh.ops.scale(bm, vec=((DEPTH - 2.0) / math.sqrt(2), (FRONT_W - 2.0) / math.sqrt(2), 3.2), verts=r['verts'])
-bmesh.ops.translate(bm, verts=r['verts'], vec=(0, 0, ztop + 1.6))
+bmesh.ops.scale(bm, vec=((DEPTH - 1.6) / math.sqrt(2), (FRONT_W - 1.6) / math.sqrt(2), 1.6), verts=r['verts'])
+bmesh.ops.translate(bm, verts=r['verts'], vec=(0, 0, ztop + 0.8 - 0.3))
 for f in {f for v in r['verts'] for f in v.link_faces}: f.material_index = MI['roof']
-# friz üzerinde ince yatay profil hatları (kabartma hissi)
-for z in (P0 + PIL_H + 0.9, P0 + PIL_H + 3.6):
-    box(bm, -hd - 0.12, hd + 0.12, -hw - 0.12, hw + 0.12, z, z + 0.22, MI['stone'])
 bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
 uvs(bm, TILE_STONE)
 me = bpy.data.meshes.new('AnitBlok'); bm.to_mesh(me); bm.free()
-for k in ('stone', 'dark', 'glass', 'roof'): me.materials.append(M[k])
+for k in ('stone', 'dark', 'glass', 'roof', 'bronze', 'marble'): me.materials.append(M[k])
 ob = link(bpy.data.objects.new('AnitBlok_Yapi', me), 'MODEL')
-ob['note'] = 'Ölçüler: peristil 41.65 × 57.35 m, 8 × 14 pilon 1.4 × 1.3 × 16 m; kaide ve basamak yaklaşık'
+ob['note'] = 'Ölçüler: peristil 41.65 × 57.35 m, 10 × 14 = 44 pilon, pilon 14.4 m; kaide, basamak ve teras yaklaşık (fotoğraf)'
+
+# ------------------------------------------------------------------ özel UV'li yüzeyler: rölyef panelleri, yazıt panelleri, bronz kapı
+import importlib.util
+_spec = importlib.util.spec_from_file_location('rolyef', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'rolyef.py'))
+rolyef = importlib.util.module_from_spec(_spec); _spec.loader.exec_module(rolyef)
+
+def grid_panel(name, mat, a, p0, p1, z0, z1, nu, nv, height=None, depth=0.0):
+    """a sabit düzlemde (meydana bakan, −a yönü) ızgara; u: p0→p1, v: z0→z1; height[v,u] (üstten satır) ile −a yönüne kabartma."""
+    me = bpy.data.meshes.new(name); verts = []; faces = []; uv = []
+    for j in range(nv + 1):
+        for i in range(nu + 1):
+            u, v = i / nu, j / nv; dz = 0.0
+            if height is not None:
+                hh, ww = height.shape; dz = depth * float(height[int((1 - v) * (hh - 1)), int(u * (ww - 1))])
+            verts.append(L(a - dz, p0 + (p1 - p0) * u, z0 + (z1 - z0) * v)); uv.append((u, v))
+    for j in range(nv):
+        for i in range(nu):
+            k = j * (nu + 1) + i; faces.append((k, k + nu + 1, k + nu + 2, k + 1))
+    me.from_pydata(verts, [], faces); me.update()
+    lay = me.uv_layers.new(name='UVMap')
+    for poly in me.polygons:
+        for li in poly.loop_indices: lay.data[li].uv = uv[me.loops[li].vertex_index]
+    # yüz yönü: −a (meydana) baksın
+    bmx = bmesh.new(); bmx.from_mesh(me); bmx.normal_update()
+    if sum(f.normal.x for f in bmx.faces) > 0:
+        for f in bmx.faces: f.normal_flip()
+    bmx.to_mesh(me); bmx.free()
+    for poly in me.polygons: poly.use_smooth = height is not None
+    me.materials.append(mat)
+    return link(bpy.data.objects.new(name, me), 'MODEL')
+
+RW, RH = 2048, 560
+for s, d, seed, nm in ((-1, 1, 11, 'Sol'), (1, -1, 23, 'Sag')):
+    # sol panelde (p < 0) yürüyüş merdivene doğru (+p), sağda −p yönünde
+    rgb, nrm, Hh = rolyef.textures(RW, RH, d, seed, base=WARM)
+    img = make_image(f'Rolyef_{nm}', rgb); nimg = make_image(f'Rolyef_{nm}_N', nrm, 'Non-Color')
+    mat = pbr(f'Rolyef_{nm}', img, nimg, 0.74)
+    pa, pb = sorted((s * (STAIR_HW + 1.0), s * (TERR_P - 1.0)))
+    grid_panel(f'Rolyef_{nm}', mat, STAIR_FOOT - 0.02, pa, pb, 0.75, P0 - 0.85, 220, 60, Hh, 0.16)
+
+def inscription_tex(seed, w=512, h=1280):
+    rng = np.random.default_rng(seed); n = fbm(256, 4, seed)
+    base = np.array(WARM) * 0.78; img = base[None, None] * (0.92 + 0.12 * np.kron(n, np.ones((5, 2)))[:h, :w, None])
+    gold = np.array((0.86, 0.66, 0.30))
+    y = 70
+    while y < h - 40:                                               # okunmayan, soyut yazı satırları (altın harf izlenimi)
+        x = 40; big = y < 110
+        while x < w - 40:
+            L_ = int(rng.integers(8, 34)) * (2 if big else 1)
+            if x + L_ > w - 40: break
+            img[y:y + (14 if big else 8), x:x + L_] = gold * rng.uniform(0.8, 1.0)
+            x += L_ + int(rng.integers(6, 12))
+        y += 30 if big else 17
+    return np.clip(img, 0, 1)
+
+def door_tex(w=256, h=512):
+    img = np.ones((h, w, 3)) * np.array((0.62, 0.66, 0.68))       # arkadan aydınlık buzlu cam
+    img *= (0.85 + 0.15 * np.linspace(1, 0, h))[:, None, None]
+    bz = np.array((0.23, 0.17, 0.10))
+    for x in range(0, w, w // 8): img[:, max(0, x - 3):x + 3] = bz
+    for y in range(0, h, h // 14): img[max(0, y - 3):y + 3] = bz
+    img[:, :8] = bz; img[:, -8:] = bz; img[:8] = bz; img[-8:] = bz
+    return img
+
+INS = pbr('Yazit', make_image('Yazit', inscription_tex(5)), None, 0.6)
+DOOR = pbr('Bronz_Kapi', make_image('Bronz_Kapi', door_tex()), None, 0.45)
+for s in (-1, 1):
+    for b0, b1 in ((PF[1], PF[2]), (PF[2], PF[3])):                # 2. ve 3. akslar (ve simetriği)
+        lo, hi = sorted((s * abs(b0), s * abs(b1)))
+        grid_panel(f'Yazit_{"Sol" if s < 0 else "Sag"}_{abs(b0):.0f}', INS, ia0 - 0.03, lo + 0.9, hi - 0.9, P0 + 0.9, P0 + 11.2, 1, 1)
+grid_panel('Bronz_Kapi', DOOR, ia0 + CELLA_REC - 0.09, -2.2, 2.2, P0, P0 + 9.5, 1, 1)
 
 # ------------------------------------------------------------------ Tören Meydanı cilalı traverten zemin
 bm = bmesh.new()
 a0, a1, p = SQUARE['a0'], SQUARE['a1'], SQUARE['p']
 box(bm, a0, a1, -p, p, -0.6, 0.06, 0)
 # meydandan merdivene uzanan bağlantı sahanlığı
-box(bm, a1, front - STEPS * run + 0.02, -hw - 4.6, hw + 4.6, -0.6, 0.06, 0)
+box(bm, a1, STAIR_FOOT + 0.02, -STAIR_HW, STAIR_HW, -0.6, 0.06, 0) if a1 < STAIR_FOOT else None
 # Anıt Blok eksenindeki koyu taş şeritler (fotoğraftaki yön çizgileri)
 for s in (-1, 1):
-    box(bm, a0 + 2, front - STEPS * run, s * 3.2 - 0.18, s * 3.2 + 0.18, 0.06, 0.075, 1)
+    box(bm, a0 + 2, STAIR_FOOT, s * 3.2 - 0.18, s * 3.2 + 0.18, 0.06, 0.075, 1)
 bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
 uvs(bm, TILE_FLOOR)
 me = bpy.data.meshes.new('Meydan'); bm.to_mesh(me); bm.free()
@@ -196,10 +303,14 @@ UNIT = bpy.data.meshes.new('COL_Kutu'); b2 = bmesh.new(); bmesh.ops.create_cube(
 def col(name, a0, a1, p0, p1, z0, z1):
     o = link(bpy.data.objects.new(name, UNIT), 'COLLIDERS'); o.location = L((a0 + a1) / 2, (p0 + p1) / 2, (z0 + z1) / 2); o.scale = (a1 - a0, p1 - p0, z1 - z0); return o
 col('COL_Kaide', -hd - PODIUM_PAD, hd + PODIUM_PAD, -hw - PODIUM_PAD, hw + PODIUM_PAD, -1.5, P0)
-col('COL_Yapi', -hd - CORNICE, hd + CORNICE, -hw - CORNICE, hw + CORNICE, P0, ztop + 3.2)
-for k in range(0, STEPS, 6):   # merdiven: kademeli kutular
+col('COL_Yapi', -hd - CORNICE, hd + CORNICE, -hw - CORNICE, hw + CORNICE, P0, ztop + 1.3)
+for k in range(0, STEPS, 6):   # merdiven: kademeli kutular (oyunda zemin sayılır)
     top = P0 * (STEPS - k) / STEPS
-    col(f'COL_Merdiven_{k:02d}', front - (k + 6) * run, front - k * run, -hw - 4.6, hw + 4.6, -0.5, top)
+    col(f'COL_Merdiven_{k:02d}', front - (k + 6) * run, front - k * run, -STAIR_HW, STAIR_HW, -0.5, top)
+for s in (-1, 1):              # rölyefli teraslar (oyunda zemin sayılır; anitkabir.json anitBlok.terraces)
+    pa, pb = sorted((s * STAIR_HW, s * TERR_P)); col(f'COL_Kaide_Teras_{"Sol" if s < 0 else "Sag"}', STAIR_FOOT, TERR_BACK, pa, pb, -1.5, P0)
+for i, (a, p) in enumerate(BOWLS): col(f'COL_Ates_Kasesi_{i:02d}', a - 0.85, a + 0.85, p - 0.85, p + 0.85, P0, P0 + 1.5)
+col('COL_Hitabet_Kursusu', ka - 0.5, ka + 0.5, -2.7, 2.7, kz - 0.4, kz + 1.05)
 
 # ------------------------------------------------------------------ dışa aktarma
 os.makedirs(A.out, exist_ok=True)
@@ -212,5 +323,5 @@ def export(coll, fname):
 export('MODEL', 'anit-blok.glb'); export('COLLIDERS', 'anit-blok-colliders.glb')
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(A.out, 'anit-blok.blend'), compress=True)
 tris = sum(sum(len(p.vertices) - 2 for p in o.data.polygons) for o in COLL['MODEL'].objects if o.type == 'MESH')
-print('[anit_blok]', json.dumps({'tris': tris, 'front_m': FRONT_W, 'depth_m': DEPTH, 'pillars': 2 * NF + 2 * NS - 4,
-      'height_above_square_m': round(ztop + 3.2, 1), 'square_m': [a1 - a0, 2 * p], 'stairs_front_a': round(front - STEPS * run, 1)}, ensure_ascii=False))
+print('[anit_blok]', json.dumps({'tris': tris, 'front_m': FRONT_W, 'depth_m': DEPTH, 'pillars': 2 * NF + 2 * NS - 4, 'structure_m': round(PIL_H + ENT_H + 1.05, 2),
+      'height_above_square_m': round(ztop + 1.3, 1), 'square_m': [SQUARE['a1'] - SQUARE['a0'], 2 * SQUARE['p']], 'stairs_front_a': STAIR_FOOT, 'pillar_m': PIL_H, 'terrace': [STAIR_FOOT, TERR_BACK, STAIR_HW, TERR_P]}, ensure_ascii=False))

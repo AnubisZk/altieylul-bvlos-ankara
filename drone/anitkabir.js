@@ -17,6 +17,7 @@ export function createMonumentField(data){
   const axial=ab?(x,z)=>({a:x*ab.axis[0]+z*ab.axis[1],p:-x*ab.axis[1]+z*ab.axis[0]}):null;
   const builtGround=(x,z)=>{if(!ab)return null;const {a,p}=axial(x,z),top=ab.squareTop,base=top-0.06;
     if(Math.abs(a)<=ab.podium.a&&Math.abs(p)<=ab.podium.p)return base+ab.podium.top;
+    const tr=ab.terraces;if(tr&&a>=tr.a0&&a<=tr.a1&&Math.abs(p)>=tr.p0&&Math.abs(p)<=tr.p1)return base+tr.top;
     if(a>ab.stairs.a0&&a<ab.stairs.a1&&Math.abs(p)<=ab.stairs.p)return top+(ab.podium.top-0.06)*(a-ab.stairs.a0)/(ab.stairs.a1-ab.stairs.a0);
     if(a>=ab.square.a0&&a<=ab.square.a1&&Math.abs(p)<=ab.square.p)return top;
     return null};

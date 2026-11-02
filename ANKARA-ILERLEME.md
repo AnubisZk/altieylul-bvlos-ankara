@@ -152,6 +152,21 @@ Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okun
 - Şehir binaları (`drone/city-buildings.js`): canvas ile üretilen cephe dokuları (pencere aksı 3.2 m, kat 3.0 m),
   bina başına Ankara sıva renkleri, balkonlu / ofis cephe tipleri, düz beton ve kiremit çatılar; 5 çizim çağrısı.
 
+## Anıt Blok orijinale göre: 44 pilon, rölyefli teraslar (3 Kasım)
+
+- Fotoğraflara göre düzeltildi (`tools/blender/anit_blok.py`): ön/arka cephe 10, yanlar 14 pilon (toplam 44, köşeler
+  geniş), pilon 14.4 m, yapı ~17.8 m; diş sıralı saçak; ön cephede orta üç aks giriş girintisi ve bronz ızgaralı kapı,
+  2–3. ve 7–8. akslarda yazıt panelleri (soyut, okunmaz), dış akslardan yan galeri görünür.
+- Merdiven 42 basamak, ±22.4 m; ortasında beyaz mermer Hitabet kürsüsü.
+- Merdivenin iki yanında meydana bakan rölyefli teraslar (a −46.94…−20, |p| 22.4…42, üst 6.4 m), üstlerinde her
+  yanda 5 bronz ateş kasesi. Oyun zemini: `anitkabir.json → anitBlok.terraces`; çarpışma kutuları `COL_Kaide_Teras_*`
+  (zemin sayılır), `COL_Ates_Kasesi_*`, `COL_Hitabet_Kursusu`.
+- Rölyef dokusu `tools/blender/rolyef.py`: yordamsal, özgün yürüyüş kompozisyonu (asker, cephane taşıyan kadın, at,
+  top, sancak) → albedo + normal + 0.16 m gerçek kabartma ızgarası. Gerçek rölyeflerin kopyası değildir (heykeltıraş
+  eserleri telifli). Zafer Hoca'nın Meshy "Monumental Serenity" modeli incelendi: rölyef yüzeyi okunmaz gürültü,
+  oranlar kare (41.65 × 57.35 değil) olduğu için kullanılmadı; kaynak dosya repoda yok.
+- Önizleme: `python tools/blender/rolyef.py --preview out.png` (numpy + Pillow).
+
 ## Heykel grupları (yer hazır, model bekleniyor)
 
 - Erkek grubu Hürriyet Kulesi önünde (t = −9.4), kadın grubu İstiklal Kulesi önünde (t = +9.4), s = 6 m kaideler.

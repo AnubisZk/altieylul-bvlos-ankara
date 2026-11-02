@@ -41,6 +41,9 @@ test('Anıtkabir field: rebuilt Anıt Blok podium and polished square are ground
   const sq=[-110*ab.axis[0]+0*ab.axis[1],-110*ab.axis[1]];   // meydan ekseninde
   assert.equal(f.groundAt(...sq),ab.squareTop);assert.equal(f.heightAt(...sq),-Infinity);
   assert.equal(f.hitTest(600,950,600,.2),null);
+  const ma=(a,p)=>[a*ab.axis[0]-p*ab.axis[1],a*ab.axis[1]+p*ab.axis[0]];
+  for(const p of [-32,32])assert.ok(Math.abs(f.groundAt(...ma(-35,p))-(ab.squareTop-0.06+ab.terraces.top))<1e-6,'rölyefli teras üstü zemin');
+  assert.ok(f.groundAt(...ma(-40,0))<ab.squareTop+ab.podium.top-0.5,'merdiven terastan alçak');
 });
 
 import {createRoadField} from '../drone/aslanli-yol.js';

@@ -119,7 +119,7 @@ const data={
   floorY,footprint,
   grid:{x0:gx0,z0:gz0,step:cell,cols,rows,heights},
   anitBlok:{model:'models/anit-blok.glb',colliders:'models/anit-blok-colliders.glb',lift:0.92,squareTop:+(floorY+0.92+0.06).toFixed(2),
-    square:{a0:-180,a1:-46,p:42},stairs:{a0:-46.94,a1:-33.98,p:25.4,top:6.4},podium:{a:33.98,p:26.13,top:6.4},axis:[+c.toFixed(6),+(-s).toFixed(6)],
+    square:{a0:-180,a1:-46,p:42},stairs:{a0:-46.94,a1:-33.98,p:22.4,top:6.4},podium:{a:33.98,p:26.13,top:6.4},terraces:{a0:-46.94,a1:-20,p0:22.4,p1:42,top:6.4},axis:[+c.toFixed(6),+(-s).toFixed(6)],
     note:'Anıt Blok ve meydan zemini Blender ile gerçek ölçülerde (tools/blender/anit_blok.py); revaklar Meshy'},
   // bayrak: Zafer Hoca'nın işaretlediği yer — Aslanlı Yol girişinin tam karşısındaki revak boşluğu (Meshy modelinde
   // a = −128…−101 arası açıklık, revak hattı p ≈ +48); taban Meshy zemininde (floorY + 0.5)
