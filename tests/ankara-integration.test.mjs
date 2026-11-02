@@ -9,6 +9,8 @@ import {DroneSim,validRoute} from '../drone/sim.js';
 import {searchRoute} from '../drone/night-state.js';
 import {searchAreas,chooseSearchPoint} from '../drone/search-site.js';
 import {musicTrackAt} from '../drone/music-zone.js';
+import {GamepadInput} from '../drone/gamepad-input.js';
+import {gamepadSafety} from '../drone/gamepad-flight.js';
 import {pointInRing} from '../drone/area.js';
 import {createLaunchSite} from '../drone/launch-site.js';
 import {imageryConfig} from '../tools/build/imagery-config.mjs';
@@ -38,14 +40,14 @@ test('search never silently chooses a street or blocked ground when green areas 
   assert.equal(chooseSearchPoint({...world,getObstacleHeight:()=>Infinity},home),null);
   assert.equal(chooseSearchPoint({...world,isWater:()=>true},home),null);
 });
-test('music uses Anıtkabir park geometry and holds its selection within the boundary band',()=>{
+test('music switches on crossing the park perimeter from either side',()=>{
   const zone=read('music-zone.json');
   assert.equal(musicTrackAt({x:0,z:0},zone),'anitkabir');
   assert.equal(musicTrackAt({x:1900,z:0},zone),'ankara');
   const box={ring:[[0,0],[100,0],[100,100],[0,100]]};
-  assert.equal(musicTrackAt({x:2,z:50},box,'ankara'),'ankara');
+  assert.equal(musicTrackAt({x:2,z:50},box,'ankara'),'anitkabir');
   assert.equal(musicTrackAt({x:10,z:50},box,'ankara'),'anitkabir');
-  assert.equal(musicTrackAt({x:-2,z:50},box,'anitkabir'),'anitkabir');
+  assert.equal(musicTrackAt({x:-2,z:50},box,'anitkabir'),'ankara');
   assert.equal(musicTrackAt({x:-10,z:50},box,'anitkabir'),'ankara');
 });
 test('Vercel public key overrides local configuration; missing keys clear any previous build configuration',()=>{
@@ -56,6 +58,28 @@ test('Vercel public key overrides local configuration; missing keys clear any pr
   assert.throws(()=>imageryConfig({env:{ARCGIS_API_KEY:'invalid'}}),/yapılandırması/);
   assert.throws(()=>imageryConfig({env:{},readLocal:()=>({apiKey:12})}),/yapılandırması/);
 });
+test('Xbox free flight regains manual control and switches tracks crossing the real park boundary in both directions',()=>{
+  const zone=read('music-zone.json');
+  const pad={id:'Virtual Xbox',index:0,mapping:'standard',axes:[0,0,0,0],buttons:Array.from({length:17},()=>({value:0}))};
+  const input=new GamepadInput(),sim=new DroneSim(home,ground,(x,y,z)=>!!index.hitTest(x,y,z,.2));
+  const fly=(seconds)=>{
+    for(let i=0;i<seconds*20;i++){sim.manual=input.step([pad]).controls;sim.tick(.05);}
+    assert.equal(sim.mode,'manual');
+  };
+  input.step([pad]);
+  sim.toggleMotors();pad.axes[1]=-1;sim.startStickFlight(input.step([pad]).controls.vertical);
+  fly(30);pad.axes[1]=0;
+  assert.equal(musicTrackAt(sim,zone),'anitkabir');
+  gamepadSafety(sim);input.suspend();input.step([pad]);
+  pad.buttons[10].value=1;
+  assert.deepEqual(input.step([pad]).actions,['manual']);
+  sim.enterManual();pad.buttons[10].value=0;
+  pad.axes[3]=-1;fly(45);
+  assert.equal(musicTrackAt(sim,zone,'anitkabir'),'ankara');
+  pad.axes[3]=1;fly(45);
+  assert.equal(musicTrackAt(sim,zone,'ankara'),'anitkabir');
+});
+
 test('Tandoğan windsock responds to wind and leaves the takeoff column clear',()=>{
   const scene=new T.Scene(),site=createLaunchSite({scene,home,world,reducedMotion:true});
   assert.equal(site.counts.windsocks,1);assert.equal(site.hitTest(home.x,ground(home.x,home.z)+1,home.z,.3),null);

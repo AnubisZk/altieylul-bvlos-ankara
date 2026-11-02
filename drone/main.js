@@ -8,6 +8,7 @@ import {DroneSim,validRoute} from './sim.js';
 import {createLaunchSite} from './launch-site.js';
 import {createDefaultRoute,HERITAGE} from './mission.js';
 import {createMusic} from './music.js';
+import musicZone from '../data/ank/music-zone.json';
 import {createStreetMap} from './street-map.js';
 import {createGuide} from './guide.js';
 import {addHeritageGround} from './ground.js';
@@ -35,7 +36,16 @@ let monumentGuard=null,guardNotice=0;
 function guardedTick(dt){
   const safe={x:sim.x,y:sim.y,z:sim.z};monumentGuard=null;sim.tick(dt);
   if(!monumentGuard)return;
-  sim.x=safe.x;sim.y=safe.y;sim.z=safe.z;sim.speed=0;sim.manualForward=0;sim.manualSide=0;
+  // Keep a clear upward escape when both sticks are held against a monument.
+  const canClimb=sim.mode==='manual'&&sim.manual.vertical>0&&sim.y>safe.y
+    &&!world.hitTest(safe.x,sim.y,safe.z,.2)&&!harbor.hitTest(safe.x,sim.y,safe.z,.2);
+  sim.distance-=Math.hypot(sim.x-safe.x,sim.z-safe.z);
+  sim.x=safe.x;sim.z=safe.z;if(!canClimb)sim.y=safe.y;
+  sim.agl=sim.y-world.getGroundHeight(sim.x,sim.z);
+  sim.verticalSpeed=dt>0?(sim.y-safe.y)/dt:0;
+  sim.speed=0;sim.manualForward=0;sim.manualSide=0;
+  const sample=sim.track.at(-1);
+  if(sample&&sample.t===+sim.elapsed.toFixed(1))Object.assign(sample,{x:sim.x,y:sim.y,z:sim.z});
   if(sim.mode==='mission'||sim.mode==='rth')sim.hold();
   const now=performance.now();if(now-guardNotice>4000){guardNotice=now;sim.log?.('Anıtkabir koruma mesafesi • drone durduruldu');status('Anıtkabir koruma mesafesi: drone durduruldu. Yükselerek veya geri çekilerek uzaklaş.')}
 }
@@ -81,7 +91,9 @@ function beginFreeFlight(stick=false,vertical=0){
     if(!(stick?sim.startStickFlight(vertical):sim.startFree()))return;training.cancel();training.begin();weather.recordStart();keys.clear();
     shownReport=false;lastEvent=-1;lastMode='';lastTelemetry=null;editing=false;$('edit').textContent='Rotayı düzenle';$('edit').classList.remove('selected');
     $('pause').textContent='Ⅱ Duraklat';setView('fpv');music.setPaused(false);refreshRoute();
-    $('map-hint').textContent='Serbest uçuş · planlanan rota izlenmez. Eve dön ile iniş yap.';
+    streets.hide();
+    map.setView(coord(sim),16,{animate:false});
+    $('map-hint').textContent='Serbest uçuş · mor kesikli çizgi Anıtkabir müzik sınırıdır.';
     status(stick?'Sol çubukla yüksel; ortalayınca yüksekliği koru.':'Serbest uçuş başladı · 3 m kalkıştan sonra W/S A/D Q/E R/F.');
   }else if(!sim.enterManual())return;
   rate=1;$('rate').textContent='Hız: 1×';updateUI();
@@ -116,7 +128,7 @@ const training=createNightTraining({scene,camera,fill:light,getState:()=>({world
 });
 const pilot=createPilotControls({camera,getSim:()=>sim,getView:()=>view,status});
 const gamepad=createGamepadPanel({getSim:()=>sim,status,onSuspend:()=>{
-  keys.clear();if(gamepadSafety(sim))status('Kol kontrolü bekliyor · konum korunuyor.');
+  keys.clear();if(gamepadSafety(sim))status('Konum korunuyor. Kolu ortala, ardından Manuel kontrolü al tuşuna veya ekrandaki Manuel düğmesine bas.');
 }});
 document.addEventListener('focusin',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))keys.clear();});
 function padAction(action){
@@ -144,7 +156,7 @@ const target=new THREE.Vector3(),eye=new THREE.Vector3();
 let aerialImagery=null;
 let last=performance.now(),uiAcc=0,frames=0,fpsAt=last,lastTelemetry=null;
 function animate(now){requestAnimationFrame(animate);const dt=Math.min(.08,(now-last)/1000);last=now;frames++;if(now-fpsAt>1000){$('fps').textContent=Math.round(frames*1000/(now-fpsAt));frames=0;fpsAt=now}
-  const padFrame=gamepad.update(now,document.hidden||!document.hasFocus()||$('dialog').open||/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName));
+  const padFrame=gamepad.update(now,document.hidden||!document.hasFocus()||$('dialog').open);
   if(sim&&ready){for(const action of padFrame.actions)padAction(action);
     const keyboard={forward:+keys.has('KeyW')-+keys.has('KeyS'),side:+keys.has('KeyD')-+keys.has('KeyA'),yaw:+keys.has('KeyE')-+keys.has('KeyQ'),vertical:+keys.has('KeyR')-+keys.has('KeyF')};
     if(!sim.active()&&sim.armed&&padFrame.ready&&!padFrame.actions.includes('motor')&&padFrame.controls.vertical>0&&keyboard.vertical>=0)beginFreeFlight(true,padFrame.controls.vertical);
@@ -173,6 +185,7 @@ function updateUI(){if(sim.link>0||!sim.active())lastTelemetry={x:sim.x,z:sim.z,
   window.bvlosState={ready,mode:sim.mode,paused:sim.paused,elapsed:sim.elapsed,agl:sim.agl,battery:sim.battery,link:sim.link,waypoints:sim.index,total:sim.route.length,position:{x:sim.x,y:sim.y,z:sim.z},terrainTiles:world.terrain.stats.loaded,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,flightKind:sim.flightKind,manualProfile:sim.manualProfile,zoom:pilot.zoom,armed:sim.armed,gamepad:gamepad.diagnostic,stickFlight:sim.stickFlight,stickLanding:sim.stickLanding,version:'ank-0.2.0',world:{...world.sources,buildings:world.obstacles?.list.length||0,landmarks:world.landmarks.landmarks.map(l=>l.id)}};
 }
 async function init(){try{const regionResponse=await fetch(ANK_DATA+'region.json');if(!regionResponse.ok)throw Error('Bölge tanımı '+regionResponse.status);const region=await regionResponse.json();setGeoRegion(region,createUtm(region.crs));home=lonLatToLocal(region.home.lon,region.home.lat);camera.position.set(home.x,180,home.z+150);camera.lookAt(home.x,30,home.z);preset();homeMarker=L.marker(coord(home),{icon:L.divIcon({className:'map-home',html:'⌂',iconSize:[27,27]})}).addTo(map);geofence=L.circle(coord(home),{radius:2000,color:'#749377',weight:1,dashArray:'4 7',fillOpacity:.025}).addTo(map);droneMarker=L.marker(coord(home),{icon:L.divIcon({className:'map-drone',html:'✥',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(map);trailLine=L.polyline([],{color:'#bddc81',weight:3}).addTo(map);
+    L.polygon(musicZone.ring.map(([x,z])=>coord({x,z})),{color:'#aa65cc',weight:2,dashArray:'6 5',fill:false,interactive:false}).addTo(map);
     const modelP=loader.loadGLTF('models/bilsem-surveyor.glb');modelP.catch(()=>{});
     const quality={...QUALITY.low,deviceClass:'tablet',imageryMaxLevel:0,maxImageryTiles:160,maxTerrainTiles:420,cityLodScale:.75,treeDensity:.3,treeDistance:.65,terrainError:1.6,anisotropy:8,water:'medium',textureMaxSize:2048};
     world=await createAnkaraWorld({scene,renderer,camera,loader,quality,onProgress:(p,t)=>{$('load-progress').value=p;$('load-text').textContent=t}});

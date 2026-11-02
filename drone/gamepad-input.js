@@ -4,7 +4,7 @@ export const ACTIONS = {motor:'Motor aç/kapat',land:'Bulunduğun yere in',camer
 export const DEFAULTS = {
   deadzone:.10,
   axes:{vertical:{index:1,invert:true,sensitivity:1},yaw:{index:0,invert:false,sensitivity:1},forward:{index:3,invert:true,sensitivity:1},side:{index:2,invert:false,sensitivity:1}},
-  buttons:{motor:0,land:1,camera:2,takeoff:3,pitchUp:6,pitchDown:7,pause:9,manual:8,rth:5},
+  buttons:{motor:0,land:1,camera:2,takeoff:3,pitchUp:6,pitchDown:7,pause:9,manual:10,rth:5},
   centers:{},approvedDevices:[]
 };
 const limit=(n,a,b)=>Math.max(a,Math.min(b,n));
