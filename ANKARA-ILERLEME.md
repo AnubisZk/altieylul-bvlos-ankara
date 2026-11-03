@@ -207,7 +207,8 @@ Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okun
 - Anahtar: kaynakta yok. Derlemede `GOOGLE_MAPS_TILES_KEY` (Vercel ortam değişkeni) ya da git dışı
   `imagery.local.json → googleTilesKey` → `dist/data/ank/tiles3d.json`. Anahtar yoksa modül hiç yüklenmez.
   Anahtar Google Cloud'da web sitesi (vercel.app) ve Map Tiles API ile kısıtlı; günlük root isteği kotası düşük tutulur.
-- Arayüz: "Gerçek şehir: Açık/Kapalı" düğmesi (tercih tarayıcıda hatırlanır), ekranda "Google" ve veri kaynakları.
+- Arayüz: "Şehir: Karma / Gerçek / Kutu" düğmesi (tercih tarayıcıda hatırlanır; varsayılan Karma = Google zemini +
+  OSM kutu binalar, duvarlar zeminin 4 m altına iner), ekranda "Google" ve veri kaynakları.
 - Bilinen sınırlar: çevrimdışı/önbellek yok (Google koşulları); fizik zemini dışarıda hâlâ GLO-30 (Google zemini ile
   birkaç metre fark olabilir); zayıf bilgisayarda düğmeyle kapatılmalı. Google koşullarında model içinde alan gizleme
   (koruma alanı) için açık bir hüküm bulunamadı — doğrulanacak.

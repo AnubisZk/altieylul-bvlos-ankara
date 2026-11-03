@@ -205,8 +205,10 @@ function showImageryState(info){
 // Gerçekçi şehir (Google Photorealistic 3D Tiles): yalnız derlemede anahtar verildiyse yüklenir; Ayar tarayıcıda hatırlanır.
 let googleCity=null,creditAt=0;
 const REAL_KEY='ank.realCity';
-function setRealCity(on){if(!googleCity||!world)return;googleCity.setEnabled(on);world.setRealCity(on);const b=$('realcity');b.classList.toggle('selected',on);b.setAttribute('aria-pressed',String(on));b.textContent=on?'Gerçek şehir: Açık':'Gerçek şehir: Kapalı';$('google-credit').hidden=!on;try{localStorage.setItem(REAL_KEY,on?'1':'0')}catch{}}
-$('realcity').onclick=()=>setRealCity(!googleCity?.enabled);
+// şehir görünümü: 'karma' (Google zemin + OSM kutu binalar), 'gercek' (yalnız Google), 'kutu' (Google kapalı)
+const CITY_MODES={karma:'Şehir: Karma',gercek:'Şehir: Gerçek',kutu:'Şehir: Kutu'},CITY_NEXT={karma:'gercek',gercek:'kutu',kutu:'karma'};let cityMode='karma';
+function setCityMode(mode){if(!googleCity||!world)return;cityMode=CITY_MODES[mode]?mode:'karma';const on=cityMode!=='kutu';googleCity.setEnabled(on);world.setRealCity(on,{boxes:cityMode==='karma'});const b=$('realcity');b.classList.toggle('selected',on);b.setAttribute('aria-pressed',String(on));b.textContent=CITY_MODES[cityMode];b.title='Karma: Google zemini + kutu binalar · Gerçek: yalnız Google 3B · Kutu: Google kapalı (zayıf bilgisayar)';$('google-credit').hidden=!on;try{localStorage.setItem(REAL_KEY,cityMode)}catch{}}
+$('realcity').onclick=()=>setCityMode(CITY_NEXT[cityMode]);
 async function startGoogleCity(){
   let cfg=null;try{const r=await fetch(ANK_DATA+'tiles3d.json',{cache:'no-cache'});if(r.ok)cfg=await r.json()}catch{}
   if(!cfg?.apiKey?.trim()||!world)return;
@@ -216,7 +218,7 @@ async function startGoogleCity(){
   if(!googleCity)return;
   scene.add(googleCity.object);$('realcity').hidden=false;
   let saved=null;try{saved=localStorage.getItem(REAL_KEY)}catch{}
-  setRealCity(saved!=='0');
+  setCityMode(saved==='0'?'kutu':saved||'karma');
 }
 init().then(()=>{startGoogleCity().catch(e=>console.warn('[google-city]',e));if(world)createAerialImagery({world,renderer,url:ANK_DATA+'imagery.json',bounds:world.region.bboxLonLat,onState:showImageryState}).then(value=>{aerialImagery=value}).catch(()=>showImageryState({status:'unavailable'}))});
 

@@ -200,7 +200,7 @@ export async function createAnkaraWorld({scene,renderer,camera,loader=null,quali
     keepZones:keep,
     // Tören Meydanı ortası: Google ağının dikey kalibrasyon noktası
     realCityAnchor:monumentData?.anitBlok?(()=>{const [c,sn]=monumentData.anitBlok.axis;return {x:-110*c,z:-110*sn,y:monumentData.anitBlok.squareTop}})():null,
-    /** Gerçekçi şehir katmanı açık/kapalı: koruma alanı dışında arazi ve OSM binaları gizlenir (OSM çarpışması kalır). */
-    setRealCity(on){keepU.uKeepMode.value=on?2:0;if(bm)bm.visible=!on},
+    /** Gerçekçi şehir: koruma alanı dışında arazimiz gizlenir; boxes=true (karma) ise OSM kutu binalar Google zemininde kalır. */
+    setRealCity(on,{boxes=false}={}){keepU.uKeepMode.value=on?2:0;if(bm)bm.visible=!on||boxes},
   };
 }

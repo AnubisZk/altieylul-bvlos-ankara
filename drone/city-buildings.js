@@ -42,6 +42,7 @@ export function facadeTextures(){
 const hash=s=>{let h=2166136261;for(const ch of String(s))h=Math.imul(h^ch.charCodeAt(0),16777619);return h>>>0};
 
 /** list: createObstacleIndex(...).list (ring, bottom, top, type, id) → THREE.Group */
+const SINK=4;
 export function createCityBuildings(list,{anisotropy=4}={}){
   if(!list.length)return null;
   const tex=facadeTextures();for(const t of Object.values(tex))t.anisotropy=anisotropy;
@@ -54,12 +55,13 @@ export function createCityBuildings(list,{anisotropy=4}={}){
     // dış halka saat yönü değilse ters çevir (duvar normalleri dışa)
     let ring=b.ring;let area=0;for(let i=0;i<ring.length;i++){const [x1,z1]=ring[i],[x2,z2]=ring[(i+1)%ring.length];area+=x1*z2-x2*z1}
     if(area>0)ring=[...ring].reverse();
-    const W=buckets[kind];let run=0;
+    // duvarlar zeminin 4 m altına iner: karma görünümde Google zemini DEM'den yüksek/alçak olsa da bina havada kalmaz
+    const W=buckets[kind];let run=0;const base=b.bottom-SINK,vb=-SINK/FLOOR;
     for(let i=0;i<ring.length;i++){
       const [x1,z1]=ring[i],[x2,z2]=ring[(i+1)%ring.length],len=Math.hypot(x2-x1,z2-z1);if(len<0.05)continue;
       const nx=-(z2-z1)/len,nz=(x2-x1)/len;   // üçgen sargısıyla aynı yön (dışa)
-      const u0=run/BAY,u1=(run+len)/BAY,v0=0,v1=height/FLOOR;run+=len;
-      const quad=[[x1,b.bottom,z1,u0,v0],[x2,b.bottom,z2,u1,v0],[x2,b.top,z2,u1,v1],[x1,b.bottom,z1,u0,v0],[x2,b.top,z2,u1,v1],[x1,b.top,z1,u0,v1]];
+      const u0=run/BAY,u1=(run+len)/BAY,v1=height/FLOOR;run+=len;
+      const quad=[[x1,base,z1,u0,vb],[x2,base,z2,u1,vb],[x2,b.top,z2,u1,v1],[x1,base,z1,u0,vb],[x2,b.top,z2,u1,v1],[x1,b.top,z1,u0,v1]];
       for(const [x,y,z,u,v] of quad){W.p.push(x,y,z);W.n.push(nx,0,nz);W.u.push(u,v);W.c.push(col.r*shade,col.g*shade,col.b*shade)}
     }
     // çatı: düz beton; küçük evlerde kiremit rengi
