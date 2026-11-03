@@ -196,6 +196,22 @@ Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okun
 - Yapı inceleme kamerası lahde meydandan, orta açıklıktan bakar (`mission.js`: distance 16, lookHeight 1.5,
   elev 0.12, orbit 1.584). Kamera hedefi `props` konumundan alınır (`ankara-world.js`, OSM noktası yerine).
 
+## Gerçek şehir: Google Photorealistic 3D Tiles (3 Kasım, deneme)
+
+- `drone/google-city.js` (3d-tiles-renderer 0.4.28, Three.js): Google'ın fotogerçekçi 3B şehir modeli yerel çerçeveye
+  oturtulur (ECEF → ENU + UTM 36N yakınsama/ölçek; test: Atakule 4.5 km'de < 1 m). Dikey: geoit tahmini 36.5 m,
+  yüklenince Tören Meydanı zeminine ışın atılarak kalibre edilir.
+- Koruma alanı (`drone/keep-zone.js`): Anıtkabir modeli, Aslanlı Yol ve kalkış pisti yönlü dikdörtgenleri. Google ağı
+  bu alanın içinde, bizim arazimiz dışında gölgelendiricide atılır; gerçek şehir açıkken OSM kutu binalar gizlenir,
+  çarpışma için OSM kutuları kalır. Gece/termal görünüm Google ağına da uygulanır (night-visuals tüm malzemeleri yamalar).
+- Anahtar: kaynakta yok. Derlemede `GOOGLE_MAPS_TILES_KEY` (Vercel ortam değişkeni) ya da git dışı
+  `imagery.local.json → googleTilesKey` → `dist/data/ank/tiles3d.json`. Anahtar yoksa modül hiç yüklenmez.
+  Anahtar Google Cloud'da web sitesi (vercel.app) ve Map Tiles API ile kısıtlı; günlük root isteği kotası düşük tutulur.
+- Arayüz: "Gerçek şehir: Açık/Kapalı" düğmesi (tercih tarayıcıda hatırlanır), ekranda "Google" ve veri kaynakları.
+- Bilinen sınırlar: çevrimdışı/önbellek yok (Google koşulları); fizik zemini dışarıda hâlâ GLO-30 (Google zemini ile
+  birkaç metre fark olabilir); zayıf bilgisayarda düğmeyle kapatılmalı. Google koşullarında model içinde alan gizleme
+  (koruma alanı) için açık bir hüküm bulunamadı — doğrulanacak.
+
 ## Heykel grupları (önceki not)
 
 - Erkek grubu Hürriyet Kulesi önünde (t = −9.4), kadın grubu İstiklal Kulesi önünde (t = +9.4), s = 6 m kaideler.

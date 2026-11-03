@@ -14,6 +14,7 @@ import {createEnvironment} from '../src/world-sf/environment.js';
 import {searchAreas} from './search-site.js';
 import {pointInRing,distanceToRing} from './area.js';
 import {createAnitkabirLayer,createMonumentField} from './anitkabir.js';
+import {keepZones,keepUniforms,clipToKeep} from './keep-zone.js';
 import {createAslanliYolLayer,createRoadField} from './aslanli-yol.js';
 import {createCityBuildings} from './city-buildings.js';
 
@@ -150,7 +151,10 @@ export async function createAnkaraWorld({scene,renderer,camera,loader=null,quali
   const visual=(x,z)=>{if(monument?.inside(x,z))return monument.floorY-2;const r=road?.groundAt(x,z);return r!=null?Math.min(r-1,terrainHeight(x,z)):terrainHeight(x,z)};
   const p=geo.attributes.position;for(let i=0;i<p.count;i++)p.setY(i,visual(p.getX(i),p.getZ(i)));
   geo.computeVertexNormals();
-  const terrainMesh=new T.Mesh(geo,terrainMaterial(shared));terrainMesh.receiveShadow=true;terrainMesh.name='ank-terrain';
+  // gerçekçi şehir açıkken (google-city.js) arazi yalnız Anıtkabir + Aslanlı Yol koruma alanında görünür
+  const keep=keepZones({monument:monumentData,road:roadData,home:region.home?lonLatToLocal(region.home.lon,region.home.lat):null}),keepU=keepUniforms(keep);
+  const tMat=terrainMaterial(shared);clipToKeep(tMat,keepU,null);
+  const terrainMesh=new T.Mesh(geo,tMat);terrainMesh.receiveShadow=true;terrainMesh.name='ank-terrain';
   const object=new T.Group();object.name='ankara-world';object.add(terrainMesh);
   const terrain={object,shared,stats:{loaded:1},getHeight:ground,isWater:()=>false,update(){}};
   scene.add(object);
@@ -193,5 +197,10 @@ export async function createAnkaraWorld({scene,renderer,camera,loader=null,quali
     setPlayable(){playable=true},
     get playable(){return playable},
     update(dt,cam){environment.update(dt,cam);for(const l of layers)l.update?.(dt,cam)},
+    keepZones:keep,
+    // Tören Meydanı ortası: Google ağının dikey kalibrasyon noktası
+    realCityAnchor:monumentData?.anitBlok?(()=>{const [c,sn]=monumentData.anitBlok.axis;return {x:-110*c,z:-110*sn,y:monumentData.anitBlok.squareTop}})():null,
+    /** Gerçekçi şehir katmanı açık/kapalı: koruma alanı dışında arazi ve OSM binaları gizlenir (OSM çarpışması kalır). */
+    setRealCity(on){keepU.uKeepMode.value=on?2:0;if(bm)bm.visible=!on},
   };
 }

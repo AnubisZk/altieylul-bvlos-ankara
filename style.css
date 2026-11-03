@@ -53,3 +53,4 @@ dialog:has(.flight-result) #close-dialog{position:sticky;top:0;z-index:2;backgro
 .street-name.leaflet-marker-icon{pointer-events:none;background:#2c271e;color:#fff2d4;border:1px solid #c9a66d;border-radius:4px;text-align:center;white-space:nowrap;font:600 10px/16px Arial,sans-serif;box-shadow:0 1px 3px #18232b70}
 .monument-name.leaflet-marker-icon{background:#133e42;border-color:#8dd9cd;color:#eafffb}
 .map-context{padding:8px 13px 0}.map-context button{font-size:10px;padding:4px 8px}
+.google-credit{font-size:8px;margin-right:8px;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom}.google-credit b{font-weight:600;letter-spacing:.02em}
