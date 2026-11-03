@@ -65,16 +65,19 @@ export async function createGoogleCity({renderer,camera,region,utm,keep,anchor,o
     geoid-=dy;place();calib++;
     if(!calibrated){calibrated=true;onState({status:'ready',geoid})}
   };
-  let enabled=true;
+  let enabled=true,lastNow=0,frameMs=16,tuneAt=0,minError=6;
   return {
     object:holder,tiles,uniforms,
     get enabled(){return enabled},
     setEnabled(v){enabled=!!v;holder.visible=enabled},
     setShade(v){shade.uCityShade.value=v},
-    setQuality(q){tiles.errorTarget=q==='low'?24:q==='high'?6:12},
+    setQuality(q){minError=q==='low'?16:q==='high'?4:6},
     attributions(){try{return tiles.getAttributions().filter(a=>a.type==='string').map(a=>a.value).join(' · ')}catch{return ''}},
     update(now){
       if(!enabled)return;
+      // uyarlamalı ayrıntı: kare hızı yüksekse daha keskin (errorTarget ↓), düşükse daha kaba (↑)
+      if(lastNow){const dt=now-lastNow;frameMs=frameMs*0.95+dt*0.05}lastNow=now;
+      if(now-tuneAt>2000){tuneAt=now;tiles.errorTarget=frameMs<20?Math.max(minError,tiles.errorTarget-2):frameMs>33?Math.min(24,tiles.errorTarget+2):tiles.errorTarget}
       camera.updateMatrixWorld();holder.updateMatrixWorld();
       tiles.setResolutionFromRenderer(camera,renderer);tiles.update();calibrate(now);
     },

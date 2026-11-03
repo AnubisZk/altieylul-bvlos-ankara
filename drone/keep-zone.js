@@ -36,7 +36,9 @@ export function clipToKeep(material,uniforms,mode,extra=null){
       .replace('#include <project_vertex>','#include <project_vertex>\nvKeepW=(modelMatrix*vec4(transformed,1.0)).xyz;');
     shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vKeepW;\n'+KEEP_GLSL+(extra?'\nuniform float uCityShade;':''))
       .replace('#include <clipping_planes_fragment>',`#include <clipping_planes_fragment>
-if(uKeepMode>0.5){bool k=ankInKeep(vKeepW.xz);if((uKeepMode<1.5&&k)||(uKeepMode>1.5&&!k))discard;}`)
+if(uKeepMode>0.5){bool k=ankInKeep(vKeepW.xz);if((uKeepMode<1.5&&k)||(uKeepMode>1.5&&!k))discard;
+  // bizim arazide koruma alanı kenarındaki dik geçiş yüzleri (anıt zemini ↔ DEM) gerilmiş fotoğraf şeridi gibi görünür
+  if(uKeepMode>1.5){vec3 kn=normalize(cross(dFdx(vKeepW),dFdy(vKeepW)));if(abs(kn.y)<0.45)discard;}}`)
       .replace('#include <opaque_fragment>',extra?'gl_FragColor.rgb*=uCityShade;\n#include <opaque_fragment>':'#include <opaque_fragment>');
   };
   const key=material.customProgramCacheKey?.bind(material);
