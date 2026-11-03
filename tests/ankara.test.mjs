@@ -44,6 +44,10 @@ test('Anıtkabir field: rebuilt Anıt Blok podium and polished square are ground
   const ma=(a,p)=>[a*ab.axis[0]-p*ab.axis[1],a*ab.axis[1]+p*ab.axis[0]];
   for(const p of [-32,32])assert.ok(Math.abs(f.groundAt(...ma(-35,p))-(ab.squareTop-0.06+ab.terraces.top))<1e-6,'rölyefli teras üstü zemin');
   assert.ok(f.groundAt(...ma(-40,0))<ab.squareTop+ab.podium.top-0.5,'merdiven terastan alçak');
+  // İnönü revakı: döşemesi zemin (Meshy kesildi, engel yok), lahit revak galerisinin ortasında
+  assert.ok(Math.abs(f.groundAt(...ma(-186,20))-(ab.squareTop+ab.revak.top))<1e-6,'revak döşemesi');
+  assert.equal(f.heightAt(...ma(-186,20)),-Infinity);
+  const lahit=data.props.find(p=>p.id==='inonu-lahdi');assert.ok(lahit.a<ab.revak.a1&&lahit.a>ab.revak.a0&&Math.abs(lahit.p)<5);
 });
 
 import {createRoadField} from '../drone/aslanli-yol.js';

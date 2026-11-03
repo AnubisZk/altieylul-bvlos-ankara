@@ -298,6 +298,71 @@ me = bpy.data.meshes.new('Meydan'); bm.to_mesh(me); bm.free()
 me.materials.append(M['floor']); me.materials.append(M['dark'])
 link(bpy.data.objects.new('TorenMeydani_Zemin', me), 'MODEL')
 
+# ------------------------------------------------------------------ İnönü revakı (meydanın Anıt Blok karşısındaki revak)
+# Zafer Hoca'nın fotoğrafına göre: meydana açık, kare kesitli traverten pilonlu revak; ortasında İsmet İnönü Lahdi
+# desenli (kilim motifli) taş döşeme üstünde. Meshy'nin bu bölümdeki revakı prepare-anitkabir.mjs'te kesilir
+# (REVAK_CUT); yan revaklar ve köşe kuleleri Meshy'de kalır. Ölçüler yaklaşık (Meshy hacmi + fotoğraf oranları).
+RV = dict(a_front=-180.0, a_step=-180.9, a_pil=-182.4, a_wall=-190.0, a_back=-194.6, p=41.5,
+          floor=0.45, n=22, mid=5.2, pil=1.15, pil_h=7.4, ent=1.5, cor=0.45, par=0.7)
+RV_TOP = 0.06 + RV['floor']
+def kilim_tex(w=1024, h=540, seed=7):
+    """Lahit çevresi döşemesi: krem traverten zemin, kırmızı-siyah basamaklı üçgen bordür, eşkenar dörtgen alan (geleneksel motif)."""
+    y, x = np.mgrid[0:h, 0:w].astype(float)
+    cream = np.array((0.86, 0.80, 0.70)); red = np.array((0.50, 0.14, 0.11)); blk = np.array((0.08, 0.075, 0.07))
+    n = fbm(512, 4, seed); img = cream[None, None] * (0.93 + 0.1 * (np.kron(n, np.ones((2, 2)))[:h, :w, None] - 0.5))
+    B = 70; d = np.minimum(np.minimum(x, w - 1 - x), np.minimum(y, h - 1 - y))
+    img[(d >= 8) & (d < 16)] = blk; img[(d >= B - 10) & (d < B - 4)] = blk
+    band = (d >= 16) & (d < B - 10)                                   # basamaklı üçgen bordür
+    along = np.where(np.minimum(y, h - 1 - y) < np.minimum(x, w - 1 - x), x, y)
+    tri = (np.abs((along % 60) - 30) // 6) * 6 + (d - 16) * 0.9 < 30
+    img[band & tri] = red
+    inner = d >= B                                                    # iç alan: eşkenar dörtgenler
+    u = (x - w / 2) / 64.0; v = (y - h / 2) / 48.0
+    du = np.abs(u - np.round(u)); dv = np.abs(v - np.round(v)); r = du + dv
+    img[inner & (r < 0.36)] = red; img[inner & (r < 0.18)] = blk
+    img[inner & (np.abs(r - 0.5) < 0.025)] = blk * 1.5
+    return np.clip(img, 0, 1)
+KILIM = pbr('Lahit_Doseme', make_image('Lahit_Doseme', kilim_tex()), None, 0.4)
+def floor_panel(name, mat, a0, a1, p0, p1, z):
+    me = bpy.data.meshes.new(name)
+    me.from_pydata([L(a0, p0, z), L(a0, p1, z), L(a1, p1, z), L(a1, p0, z)], [], [(0, 1, 2, 3)]); me.update()
+    lay = me.uv_layers.new(name='UVMap'); uvq = [(0, 1), (1, 1), (1, 0), (0, 0)]
+    for li in me.polygons[0].loop_indices: lay.data[li].uv = uvq[me.loops[li].vertex_index]
+    if me.polygons[0].normal.z < 0: me.polygons[0].flip()
+    me.materials.append(mat); return link(bpy.data.objects.new(name, me), 'MODEL')
+
+bm = bmesh.new(); RP = RV['p']
+for k in range(3):                                                    # meydandan revak döşemesine 3 basamak
+    box(bm, RV['a_front'] - (k + 1) * 0.3, RV['a_front'] - k * 0.3 + 0.02, -RP, RP, -0.6, 0.06 + RV['floor'] * (k + 1) / 3, 0)
+box(bm, RV['a_back'], RV['a_step'], -RP, RP, -0.6, RV_TOP, 2)          # revak döşemesi (cilalı traverten)
+z1 = RV_TOP + RV['pil_h']
+_h = RV['n'] // 2; _p0, _p1 = RV['mid'] / 2 + RV['pil'] / 2, RP - RV['pil'] / 2 - 0.4   # lahdin önünde geniş orta açıklık
+PR = sorted(sg * (_p0 + i * (_p1 - _p0) / (_h - 1)) for sg in (-1, 1) for i in range(_h))
+for p in PR:
+    h = RV['pil'] / 2
+    box(bm, RV['a_pil'] - h, RV['a_pil'] + h, p - h, p + h, RV_TOP, z1, 0)
+    box(bm, RV['a_pil'] - h - 0.1, RV['a_pil'] + h + 0.1, p - h - 0.1, p + h + 0.1, RV_TOP, RV_TOP + 0.35, 0)     # pilon ayağı
+    box(bm, RV['a_pil'] - h - 0.08, RV['a_pil'] + h + 0.08, p - h - 0.08, p + h + 0.08, z1 - 0.3, z1, 0)           # başlık
+    box(bm, RV['a_wall'] - 0.01, RV['a_wall'] + 0.22, p - 0.45, p + 0.45, RV_TOP, z1, 0)                           # arka duvar plastırı
+    box(bm, RV['a_wall'] + 0.4, RV['a_pil'] - h - 0.3, p - 0.09, p + 0.09, RV_TOP, RV_TOP + 0.01, 1)                # döşeme koyu taş derzi
+box(bm, RV['a_back'], RV['a_wall'], -RP, RP, -1.5, z1 + RV['ent'] + 0.45, 0)                                     # arka kütle (iç mekân)
+for s in (-1, 1):                                                                                                  # yan uç duvarları
+    pa, pb = sorted((s * (RP - 0.5), s * RP)); box(bm, RV['a_back'], RV['a_pil'] + 0.6, pa, pb, RV_TOP, z1, 0)
+box(bm, RV['a_back'], RV['a_pil'] + 0.65, -RP, RP, z1, z1 + RV['ent'], 0)                                         # saçak kuşağı
+box(bm, RV['a_wall'] + 0.2, RV['a_pil'] - 0.6, -RP + 0.5, RP - 0.5, z1 - 0.03, z1, 0)                              # tavan
+for p in PR:                                                                                                       # tavan kirişleri
+    box(bm, RV['a_wall'], RV['a_pil'], p - 0.3, p + 0.3, z1 - 0.55, z1, 0)
+box(bm, RV['a_back'] - RV['cor'], RV['a_pil'] + 0.65 + RV['cor'], -RP, RP, z1 + RV['ent'], z1 + RV['ent'] + 0.45, 0)   # korniş
+box(bm, RV['a_back'] + 0.2, RV['a_pil'] + 0.45, -RP, RP, z1 + RV['ent'] + 0.45, z1 + RV['ent'] + 0.45 + RV['par'], 0)  # korkuluk duvarı
+bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+uvs(bm, TILE_STONE)
+me = bpy.data.meshes.new('Inonu_Revak'); bm.to_mesh(me); bm.free()
+for k in ('stone', 'dark', 'floor'): me.materials.append(M[k])
+ob = link(bpy.data.objects.new('Inonu_Revaki', me), 'MODEL')
+ob['note'] = f'Meydana açık revak, {RV["n"]} kare pilon ({RV["pil"]} m, {RV["pil_h"]} m); ölçüler yaklaşık (Meshy hacmi + fotoğraf)'
+LAHIT = dict(a=-186.2, p=0.0)                                       # galeri ortası; lahit modeli oyunda props ile gelir
+floor_panel('Inonu_Lahit_Doseme', KILIM, LAHIT['a'] - 2.9, LAHIT['a'] + 2.9, -5.5, 5.5, RV_TOP + 0.015)
+
 # ------------------------------------------------------------------ çarpışma kutuları
 UNIT = bpy.data.meshes.new('COL_Kutu'); b2 = bmesh.new(); bmesh.ops.create_cube(b2, size=1.0); b2.to_mesh(UNIT); b2.free(); UNIT.materials.append(M['col'])
 def col(name, a0, a1, p0, p1, z0, z1):
@@ -310,6 +375,13 @@ for k in range(0, STEPS, 6):   # merdiven: kademeli kutular (oyunda zemin sayıl
 for s in (-1, 1):              # rölyefli teraslar (oyunda zemin sayılır; anitkabir.json anitBlok.terraces)
     pa, pb = sorted((s * STAIR_HW, s * TERR_P)); col(f'COL_Kaide_Teras_{"Sol" if s < 0 else "Sag"}', STAIR_FOOT, TERR_BACK, pa, pb, -1.5, P0)
 for i, (a, p) in enumerate(BOWLS): col(f'COL_Ates_Kasesi_{i:02d}', a - 0.85, a + 0.85, p - 0.85, p + 0.85, P0, P0 + 1.5)
+# İnönü revakı: döşeme oyunda zemin (anitkabir.json → anitBlok.revak); pilonlar, saçak, arka kütle engel
+col('COL_Kaide_Revak', RV['a_back'], RV['a_front'], -RP, RP, -0.6, RV_TOP)
+for i, p in enumerate(PR): col(f'COL_Revak_Pilon_{i:02d}', RV['a_pil'] - 0.68, RV['a_pil'] + 0.68, p - 0.68, p + 0.68, RV_TOP, z1)
+col('COL_Revak_Ust', RV['a_back'] - RV['cor'], RV['a_pil'] + 0.65 + RV['cor'], -RP, RP, z1 - 0.55, z1 + RV['ent'] + 0.45 + RV['par'])
+col('COL_Revak_Arka', RV['a_back'], RV['a_wall'] + 0.22, -RP, RP, RV_TOP, z1)
+for s in (-1, 1):
+    pa, pb = sorted((s * (RP - 0.5), s * RP)); col(f'COL_Revak_Yan_{"Sol" if s < 0 else "Sag"}', RV['a_back'], RV['a_pil'] + 0.6, pa, pb, RV_TOP, z1)
 col('COL_Hitabet_Kursusu', ka - 0.5, ka + 0.5, -2.7, 2.7, kz - 0.4, kz + 1.05)
 
 # ------------------------------------------------------------------ dışa aktarma
@@ -324,4 +396,4 @@ export('MODEL', 'anit-blok.glb'); export('COLLIDERS', 'anit-blok-colliders.glb')
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(A.out, 'anit-blok.blend'), compress=True)
 tris = sum(sum(len(p.vertices) - 2 for p in o.data.polygons) for o in COLL['MODEL'].objects if o.type == 'MESH')
 print('[anit_blok]', json.dumps({'tris': tris, 'front_m': FRONT_W, 'depth_m': DEPTH, 'pillars': 2 * NF + 2 * NS - 4, 'structure_m': round(PIL_H + ENT_H + 1.05, 2),
-      'height_above_square_m': round(ztop + 1.3, 1), 'square_m': [SQUARE['a1'] - SQUARE['a0'], 2 * SQUARE['p']], 'stairs_front_a': STAIR_FOOT, 'pillar_m': PIL_H, 'terrace': [STAIR_FOOT, TERR_BACK, STAIR_HW, TERR_P]}, ensure_ascii=False))
+      'height_above_square_m': round(ztop + 1.3, 1), 'square_m': [SQUARE['a1'] - SQUARE['a0'], 2 * SQUARE['p']], 'stairs_front_a': STAIR_FOOT, 'pillar_m': PIL_H, 'revak': {'a0': RV['a_back'], 'a1': RV['a_front'], 'p': RP, 'top': RV['floor'], 'pillars': RV['n'], 'height_m': round(RV['floor'] + RV['pil_h'] + RV['ent'] + 0.45 + RV['par'], 2)}, 'lahit': LAHIT, 'terrace': [STAIR_FOOT, TERR_BACK, STAIR_HW, TERR_P]}, ensure_ascii=False))

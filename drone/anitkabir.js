@@ -20,6 +20,7 @@ export function createMonumentField(data){
     const tr=ab.terraces;if(tr&&a>=tr.a0&&a<=tr.a1&&Math.abs(p)>=tr.p0&&Math.abs(p)<=tr.p1)return base+tr.top;
     if(a>ab.stairs.a0&&a<ab.stairs.a1&&Math.abs(p)<=ab.stairs.p)return top+(ab.podium.top-0.06)*(a-ab.stairs.a0)/(ab.stairs.a1-ab.stairs.a0);
     if(a>=ab.square.a0&&a<=ab.square.a1&&Math.abs(p)<=ab.square.p)return top;
+    const rv=ab.revak;if(rv&&a>=rv.a0&&a<rv.a1&&Math.abs(p)<=rv.p)return top+rv.top;
     return null};
   const cell=(x,z)=>{const i=Math.floor((x-x0)/step+.5),j=Math.floor((z-z0)/step+.5);if(i<0||j<0||i>=cols||j>=rows)return null;return heights[j*cols+i]};
   const inside=(x,z)=>pointInPoly(x,z,poly);
@@ -75,7 +76,7 @@ export async function createAnitkabirLayer({loader,data,renderer}){
       const [c,sn]=data.anitBlok?.axis||[1,0],x=pr.a*c-pr.p*sn,z=pr.a*sn+pr.p*c;
       const base=field.groundAt(x,z)??data.floorY,ph=pr.plinth?.h||0;
       const holder=new T.Group();holder.name='prop-'+pr.id;holder.position.set(x,base,z);holder.rotation.y=Math.atan2(c,sn)-(pr.face==='+x'?Math.PI/2:0);
-      if(pr.plinth){const m=new T.Mesh(new T.BoxGeometry(pr.plinth.w,ph,pr.plinth.d),new T.MeshStandardMaterial({color:0x8a8178,roughness:.45}));m.position.y=ph/2;m.castShadow=m.receiveShadow=true;holder.add(m)}
+      if(pr.plinth){const m=new T.Mesh(new T.BoxGeometry(pr.plinth.w,ph,pr.plinth.d),new T.MeshStandardMaterial({color:pr.plinth.color??0x8a8178,roughness:.4}));m.position.y=ph/2;m.castShadow=m.receiveShadow=true;holder.add(m)}
       const inner=new T.Group();inner.scale.setScalar(k);inner.position.y=ph;obj.position.set(-(box.min.x+box.max.x)/2,-box.min.y,-(box.min.z+box.max.z)/2);inner.add(obj);holder.add(inner);
       obj.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;if(o.material)o.material.metalness=0}});
       root.add(holder);
@@ -99,7 +100,7 @@ export async function createAnitkabirLayer({loader,data,renderer}){
   const poleHit=(x,y,z,r=0)=>pole&&y<=poleTop+GUARD_MARGIN&&Math.hypot(x-pole[0],z-pole[1])<=0.3+r+GUARD_MARGIN?{type:'landmark',id:'anitkabir-bayrak',name:'Bayrak direği'}:null;
   const fieldHeight=(x,z)=>Math.max(field.heightAt(x,z),blockColliders?blockColliders.heightAt(x,z):-Infinity);
   return {object:root,field,heightAt:(x,z)=>pole&&Math.hypot(x-pole[0],z-pole[1])<=0.3?Math.max(poleTop,fieldHeight(x,z)):fieldHeight(x,z),
-    hitTest:(x,y,z,r)=>poleHit(x,y,z,r)||(h=>h&&{type:'landmark',id:'anitkabir',name:/inonu/.test(h.name)?'İsmet İnönü Lahdi':'Anıt Blok'})(blockColliders?.hitTest(x,y,z,r))||field.hitTest(x,y,z,r),
+    hitTest:(x,y,z,r)=>poleHit(x,y,z,r)||(h=>h&&{type:'landmark',id:'anitkabir',name:/inonu/.test(h.name)?'İsmet İnönü Lahdi':/Revak/.test(h.name)?'İnönü Revakı':'Anıt Blok'})(blockColliders?.hitTest(x,y,z,r))||field.hitTest(x,y,z,r),
     /** sim.wind: {speed m/s, direction = rüzgârın geldiği yön (derece, kuzeyden saat yönü)} */
     setWind(w){if(w)wind=w},
     update(dt){

@@ -45,9 +45,14 @@ await doc.transform(dedup(),weld(),simplify({simplifier:MeshoptSimplifier,ratio:
 // kurulan models/anit-blok.glb gelir. Kesim kutusu yeni kaidenin (±25.2 × ±33.1 m) içinde kalır.
 const CUT={x:[0.4253,0.9265],z:[-0.2254,0.2054]};   // ±26.0 m enine
 const POLE=[-0.399,0.429];
+// İnönü revakı (meydanın Anıt Blok karşısındaki revak): eksen koordinatında kesilir, yerine anit_blok.py'deki revak gelir
+const REVAK_CUT={a:[-198,-180.2],p:41.2};
+const axialOf=(mx,mz)=>{const ct=Math.cos(theta),st=Math.sin(theta),x=(mx-MODEL.anitBlok.x)*scale,z=(mz-MODEL.anitBlok.z)*scale,X=x*ct+z*st,Z=-x*st+z*ct;
+  return {a:X*ct-Z*st,p:X*st+Z*ct}};
 {const prim=doc.getRoot().listMeshes()[0].listPrimitives()[0],P=prim.getAttribute('POSITION'),I=prim.getIndices(),src=I.getArray(),keep=[],a=[0,0,0],b=[0,0,0],c=[0,0,0];
   for(let t=0;t<src.length;t+=3){P.getElement(src[t],a);P.getElement(src[t+1],b);P.getElement(src[t+2],c);const cx=(a[0]+b[0]+c[0])/3,cz=(a[2]+b[2]+c[2])/3;
     if(cx>=CUT.x[0]&&cx<=CUT.x[1]&&cz>=CUT.z[0]&&cz<=CUT.z[1])continue;
+    {const q=axialOf(cx,cz);if(q.a>=REVAK_CUT.a[0]&&q.a<=REVAK_CUT.a[1]&&Math.abs(q.p)<=REVAK_CUT.p)continue}
     // Meshy'nin yan revak arkasındaki kendi bayrak direği (gerçek bayrak ayrı modeldir)
     const cy=(a[1]+b[1]+c[1])/3;if(Math.hypot(cx-POLE[0],cz-POLE[1])<0.016&&cy>-0.075)continue;
     keep.push(src[t],src[t+1],src[t+2])}
@@ -119,15 +124,15 @@ const data={
   floorY,footprint,
   grid:{x0:gx0,z0:gz0,step:cell,cols,rows,heights},
   anitBlok:{model:'models/anit-blok.glb',colliders:'models/anit-blok-colliders.glb',lift:0.92,squareTop:+(floorY+0.92+0.06).toFixed(2),
-    square:{a0:-180,a1:-46,p:42},stairs:{a0:-46.94,a1:-33.98,p:22.4,top:6.4},podium:{a:33.98,p:26.13,top:6.4},terraces:{a0:-46.94,a1:-20,p0:22.4,p1:42,top:6.4},axis:[+c.toFixed(6),+(-s).toFixed(6)],
+    square:{a0:-180,a1:-46,p:42},stairs:{a0:-46.94,a1:-33.98,p:22.4,top:6.4},podium:{a:33.98,p:26.13,top:6.4},terraces:{a0:-46.94,a1:-20,p0:22.4,p1:42,top:6.4},revak:{a0:-194.6,a1:-180,p:41.5,top:0.45},axis:[+c.toFixed(6),+(-s).toFixed(6)],
     note:'Anıt Blok ve meydan zemini Blender ile gerçek ölçülerde (tools/blender/anit_blok.py); revaklar Meshy'},
   // bayrak: Zafer Hoca'nın işaretlediği yer — Aslanlı Yol girişinin tam karşısındaki revak boşluğu (Meshy modelinde
   // a = −128…−101 arası açıklık, revak hattı p ≈ +48); taban Meshy zemininde (floorY + 0.5)
   flag:{model:'models/turk-bayragi.glb',height:24,base:+(floorY+0.5).toFixed(2),pole:[+(-104*c+47*s).toFixed(1),+(104*s+47*c).toFixed(1)],note:'Bayrak direği konumu temsili; gerekirse düzenleyin (yerel metre).'},
   // ek modeller (Zafer Hoca'nın Meshy modelleri, tools/ankara/prepare-heykel.mjs ile): eksen koordinatı a/p, uzun kenar
   // `length` metreye ölçeklenir, ön yüz (`face`, varsayılan +Z) Anıt Blok'a (+a) döner
-  props:[{id:'inonu-lahdi',name:'İsmet İnönü Lahdi',model:'models/inonu-lahdi.glb',a:-171.9,p:-3.7,length:4.2,face:'+x',plinth:{w:5.6,d:8.0,h:0.18},
-    note:'OSM node 2726254470 konumu; meydanın Anıt Blok karşısındaki revak ortası. Kitabeli üçgen alınlık (+X) Anıt Blok yönüne bakar. Ölçü fotoğraftan yaklaşık.'}],
+  props:[{id:'inonu-lahdi',name:'İsmet İnönü Lahdi',model:'models/inonu-lahdi.glb',a:-186.2,p:0,length:4.2,face:'+x',plinth:{w:5.0,d:3.0,h:0.15,color:0x4a3c38},
+    note:'Revak galerisinin ortası, kilim desenli döşeme üstünde (anit_blok.py LAHIT; OSM node 2726254470 meydanın bu ucunu gösterir). Kitabeli üçgen alınlık (+X) Anıt Blok yönüne bakar; yazı tools/blender/inonu_yazit.py. Ölçü fotoğraftan yaklaşık.'}],
 };
 fs.writeFileSync(OUT_DATA,JSON.stringify(data));
 const ok=heights.filter(h=>h!==null).length;

@@ -176,6 +176,26 @@ Bu dosya, çalışma başka bir hesapta veya oturumda sürdürülürken ilk okun
   "İsmet İnönü Lahdi" yakın kamerayla açılır (`mission.js`: distance 38, lookHeight 2).
 - Ham Meshy dosyaları repoda yok (her biri ~60 MB).
 
+## İnönü revakı ve okunur kitabe (3 Kasım)
+
+- Meydanın Anıt Blok karşısındaki revak, Zafer Hoca'nın fotoğrafına göre Blender'da yeniden kuruldu
+  (`tools/blender/anit_blok.py` → `Inonu_Revaki`, aynı `anit-blok.glb` içinde): 22 kare traverten pilon
+  (1.15 m, 7.4 m), lahdin önünde 5.2 m geniş orta açıklık, 3 basamak + 0.45 m döşeme, saçak, korniş, korkuluk duvarı,
+  tavan kirişleri, arka kütle; toplam ~10.5 m (Meshy hacmiyle uyumlu). Ölçüler yaklaşık.
+- Meshy'nin bu bölümdeki revakı `prepare-anitkabir.mjs` içinde eksen koordinatıyla kesilir (`REVAK_CUT`:
+  a −198…−180.2, |p| ≤ 41.2); yan revaklar ve köşe kuleleri Meshy'de kalır.
+- Lahit revak galerisinin ortasına taşındı (`props`: a −186.2, p 0; koyu granit taban). Altında kilim motifli
+  (kırmızı-siyah basamaklı bordür, eşkenar dörtgen alan) döşeme paneli (`Inonu_Lahit_Doseme`).
+- Oyun zemini: `anitkabir.json → anitBlok.revak` (döşeme); çarpışma kutuları `COL_Revak_*` (pilonlar, saçak, arka,
+  yanlar). Çarpışma uyarısı adı "İnönü Revakı".
+- Kitabe: `tools/blender/inonu_yazit.py` Meshy lahdinin yüzeyine ışın atıp yüzeyi izleyen ince ağlar ekler:
+  Anıt Blok'a bakan alınlıklı yüzde oyma harflerle "İSMET İNÖNÜ / 1884 – 1973"; uzun yanlarda bozuk Meshy yazısını
+  örten düz granit panel. Granit tonu model dokusundan ölçülür.
+  Yeniden üretim: `node tools/ankara/prepare-heykel.mjs --in <inonu meshy.glb> --out models/inonu-lahdi.glb --tris 19200`
+  sonra `python tools/blender/inonu_yazit.py` (bpy).
+- Yapı inceleme kamerası lahde meydandan, orta açıklıktan bakar (`mission.js`: distance 16, lookHeight 1.5,
+  elev 0.12, orbit 1.584). Kamera hedefi `props` konumundan alınır (`ankara-world.js`, OSM noktası yerine).
+
 ## Heykel grupları (önceki not)
 
 - Erkek grubu Hürriyet Kulesi önünde (t = −9.4), kadın grubu İstiklal Kulesi önünde (t = +9.4), s = 6 m kaideler.

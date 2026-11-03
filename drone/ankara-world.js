@@ -174,7 +174,9 @@ export async function createAnkaraWorld({scene,renderer,camera,loader=null,quali
   }
 
   const raw=landmarkData?.landmarks||[{id:'anit-blok',name:'Anıtkabir · Anıt Blok',lon:region.origin.lon,lat:region.origin.lat}];
-  const landmarks={landmarks:raw.map(l=>{const q=Number.isFinite(l.x)?l:lonLatToLocal(l.lon,l.lat);return {...l,x:q.x,z:q.z}})};
+  // anitkabir.json → props: modeli yerleştirilen yapılarda (İnönü Lahdi) inceleme kamerası modelin konumuna bakar
+  const propAt=id=>{const pr=monumentData?.props?.find(p=>p.id===id),ax=monumentData?.anitBlok?.axis;return pr&&ax?{x:pr.a*ax[0]-pr.p*ax[1],z:pr.a*ax[1]+pr.p*ax[0]}:null};
+  const landmarks={landmarks:raw.map(l=>{const q=propAt(l.id)||(Number.isFinite(l.x)?l:lonLatToLocal(l.lon,l.lat));return {...l,x:q.x,z:q.z}})};
   if(quality)environment.setQuality?.(quality);
   onProgress(1,'Hazır');
   let playable=false;
