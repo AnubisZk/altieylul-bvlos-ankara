@@ -203,18 +203,35 @@ function showImageryState(info){
   if(info.tiles){$('imagery-credit').hidden=false;document.querySelector('.region small').textContent='Ankara · ArcGIS hava görüntüsü'}
 }
 // Gerçekçi şehir (Google Photorealistic 3D Tiles): yalnız derlemede anahtar verildiyse yüklenir; Ayar tarayıcıda hatırlanır.
-let googleCity=null,creditAt=0;
+let googleCity=null,creditAt=0,cityReady=false;
 const REAL_KEY='ank.realCity';
 // şehir görünümü: 'karma' (Google zemin + OSM kutu binalar), 'gercek' (yalnız Google), 'kutu' (Google kapalı)
 const CITY_MODES={karma:'Şehir: Karma',gercek:'Şehir: Gerçek',kutu:'Şehir: Kutu'},CITY_NEXT={karma:'gercek',gercek:'kutu',kutu:'karma'};let cityMode='karma';
-function setCityMode(mode){if(!googleCity||!world)return;cityMode=CITY_MODES[mode]?mode:'karma';const on=cityMode!=='kutu';googleCity.setEnabled(on);world.setRealCity(on,{boxes:cityMode==='karma'});const b=$('realcity');b.classList.toggle('selected',on);b.setAttribute('aria-pressed',String(on));b.textContent=CITY_MODES[cityMode];b.title='Karma: Google zemini + kutu binalar · Gerçek: yalnız Google 3B · Kutu: Google kapalı (zayıf bilgisayar)';$('google-credit').hidden=!on;try{localStorage.setItem(REAL_KEY,cityMode)}catch{}}
+function setCityMode(mode,persist=true){
+  if(!googleCity||!world)return;
+  cityMode=CITY_MODES[mode]?mode:'karma';const on=cityMode!=='kutu';
+  if(on&&!googleCity.enabled)googleCity.retry();
+  googleCity.setEnabled(on);
+  // Keep the DEM/ArcGIS ground until Google has usable, calibrated geometry.
+  world.setRealCity(on&&cityReady,{boxes:cityMode==='karma'});
+  $('scene').dataset.city=JSON.stringify({mode:cityMode,ready:cityReady,ground:on&&cityReady?'google':'terrain'});
+  const b=$('realcity');b.classList.toggle('selected',on);b.setAttribute('aria-pressed',String(on));b.textContent=CITY_MODES[cityMode];b.title='Karma: Google zemini + kutu binalar · Gerçek: yalnız Google 3B · Kutu: Google kapalı (zayıf bilgisayar)';$('google-credit').hidden=!on;
+  if(persist)try{localStorage.setItem(REAL_KEY,cityMode)}catch{}
+}
 $('realcity').onclick=()=>setCityMode(CITY_NEXT[cityMode]);
 async function startGoogleCity(){
   let cfg=null;try{const r=await fetch(ANK_DATA+'tiles3d.json',{cache:'no-cache'});if(r.ok)cfg=await r.json()}catch{}
   if(!cfg?.apiKey?.trim()||!world)return;
   const {createGoogleCity}=await import('./google-city.js');
   googleCity=await createGoogleCity({renderer,camera,region:world.region,utm:createUtm(world.region.crs),keep:world.keepZones,anchor:world.realCityAnchor,cfg,
-    onState:s=>{if(s.status==='error')status('Gerçek şehir yüklenemedi (Google 3D Tiles): anahtar, kota veya bağlantı. Kutu binalar kullanılıyor.');if(s.status==='ready')console.info('[google-city] kalibre, geoit',s.geoid?.toFixed(1))}});
+    onState:s=>{
+      if(s.status==='error'){
+        cityReady=false;setCityMode('kutu',false);
+        status('3B şehir servisine ulaşılamadı · mevcut arazi ve hava görüntüsü korunuyor.');
+      }else if(s.status==='ready'){
+        cityReady=true;setCityMode(cityMode,false);
+      }
+    }});
   if(!googleCity)return;
   scene.add(googleCity.object);$('realcity').hidden=false;
   let saved=null;try{saved=localStorage.getItem(REAL_KEY)}catch{}

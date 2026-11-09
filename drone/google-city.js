@@ -32,7 +32,8 @@ export function localFrame(ell,region,utm){
 export async function createGoogleCity({renderer,camera,region,utm,keep,anchor,onState=()=>{},cfg}){
   const key=cfg.apiKey.trim();
   const tiles=new TilesRenderer();
-  tiles.registerPlugin(new GoogleCloudAuthPlugin({apiToken:key,autoRefreshToken:true}));
+  let auth=new GoogleCloudAuthPlugin({apiToken:key,autoRefreshToken:true});
+  tiles.registerPlugin(auth);
   const draco=new DRACOLoader().setDecoderPath(cfg.dracoPath||'vendor/draco/');
   tiles.registerPlugin(new GLTFExtensionsPlugin({dracoLoader:draco}));
   tiles.registerPlugin(new TileCompressionPlugin());
@@ -70,6 +71,15 @@ export async function createGoogleCity({renderer,camera,region,utm,keep,anchor,o
     object:holder,tiles,uniforms,
     get enabled(){return enabled},
     setEnabled(v){enabled=!!v;holder.visible=enabled},
+    retry(){
+      if(!errors)return;
+      // Failed token refresh promises are retained by the auth plugin. Recreate it
+      // for an explicit retry without touching private plugin fields.
+      const token=auth.auth.sessionToken;tiles.unregisterPlugin(auth);
+      auth=new GoogleCloudAuthPlugin({apiToken:key,autoRefreshToken:true});
+      auth.auth.sessionToken=token;tiles.registerPlugin(auth);
+      errors=0;calib=0;calibAt=0;calibrated=false;tiles.resetFailedTiles();
+    },
     setShade(v){shade.uCityShade.value=v},
     setQuality(q){minError=q==='low'?16:q==='high'?4:6},
     attributions(){try{return tiles.getAttributions().filter(a=>a.type==='string').map(a=>a.value).join(' · ')}catch{return ''}},
